@@ -250,7 +250,7 @@
     <canvas id="canvas"></canvas>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
 
     <script>
         // Initialize Lucide icons
@@ -271,15 +271,18 @@
 
         // Setup listener for photo library response
         document.addEventListener('cap-events-response', (event) => {
+            console.log('📥 Received event from native:', event.detail);
             const response = event.detail;
 
             // Handle photo library response
             if (response.photos !== undefined) {
+                console.log('📥 Processing photos response');
                 if (response.success) {
-                    console.log('Photos selected:', response.photos);
+                    console.log('✅ Photos selected:', response.photos);
 
                     if (response.photos && response.photos.length > 0) {
                         const photo = response.photos[0];
+                        console.log('📸 Photo data:', photo);
                         const imageData = photo.dataUrl; // Android uses dataUrl
 
                         capturedImageData = imageData;
@@ -293,9 +296,9 @@
                     }
                 } else {
                     if (response.cancelled) {
-                        console.log('User cancelled photo selection');
+                        console.log('❌ User cancelled photo selection');
                     } else {
-                        console.error('Photo selection failed');
+                        console.error('❌ Photo selection failed');
                         alert('Failed to select photo');
                     }
                 }
@@ -303,6 +306,7 @@
 
             // Handle camera permission response
             if (response.name === 'camera-permission-result') {
+                console.log('📥 Camera permission response:', response.granted);
                 if (response.granted) {
                     openCamera();
                 }
@@ -384,21 +388,16 @@
         }
 
         function openPhotoLibrary() {
-            document.dispatchEvent(new CustomEvent('cap-events', {
+            console.log('📤 Opening photo library...');
+            const event = new CustomEvent('cap-events', {
                 detail: {
                     name: 'photo-library',
                     selectionLimit: 1,
                     filter: 'images'
                 }
-            }));
-
-            // const event = new CustomEvent('cap-events', {
-            //     detail: {
-            //         name: 'photo-library',
-            //         selectionLimit: 1,
-            //         filter: 'images'
-            //     }
-            // })
+            });
+            console.log('📤 Dispatching event:', event.detail);
+            document.dispatchEvent(event);
         }
 
         function handleError() {

@@ -272,16 +272,26 @@
     </div>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
 
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
+        // Wait for DOM to be ready
+        let consoleOutput;
 
-        // Console logging
-        const consoleOutput = document.getElementById('console-output');
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Lucide icons
+            lucide.createIcons();
+
+            // Get console output element
+            consoleOutput = document.getElementById('console-output');
+
+            // Log initial message
+            logToConsole('received', { message: 'HASPortal Events initialized. Tap any icon to trigger an event.' });
+        });
 
         function logToConsole(type, data) {
+            if (!consoleOutput) return; // Guard against early calls
+
             const timestamp = new Date().toLocaleTimeString();
             const entry = document.createElement('div');
             entry.className = `log-entry log-${type}`;
@@ -295,7 +305,9 @@
         }
 
         function clearConsole() {
-            consoleOutput.innerHTML = '';
+            if (consoleOutput) {
+                consoleOutput.innerHTML = '';
+            }
         }
 
         // Setup listener for responses from native
@@ -418,9 +430,6 @@
             document.dispatchEvent(new CustomEvent('cap-events', { detail }));
             logToConsole('sent', detail);
         }
-
-        // Log initial message
-        logToConsole('received', { message: 'HASPortal Events initialized. Tap any icon to trigger an event.' });
     </script>
 </body>
 </html>
