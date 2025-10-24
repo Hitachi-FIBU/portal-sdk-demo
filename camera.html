@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -189,6 +190,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Camera View -->
@@ -206,7 +208,7 @@
             </div>
             <div class="bottom-sheet">
                 <button class="secondary-button" onclick="openPhotoLibrary()">
-                    📷 Upload from Library
+                    Upload from Library
                 </button>
                 <button class="secondary-button" onclick="goBack()">
                     Cancel
@@ -273,22 +275,29 @@
 
             // Handle photo library response
             if (response.photos !== undefined) {
-                if (response.success && response.photos.length > 0) {
-                    const photo = response.photos[0];
-                    const imageData = photo.dataUrl || photo.data;
+                if (response.success) {
+                    console.log('Photos selected:', response.photos);
 
-                    capturedImageData = imageData;
-                    capturedImage.src = imageData;
+                    if (response.photos && response.photos.length > 0) {
+                        const photo = response.photos[0];
+                        const imageData = photo.dataUrl; // Android uses dataUrl
 
-                    if (stream) {
-                        closeCamera();
+                        capturedImageData = imageData;
+                        capturedImage.src = imageData;
+
+                        if (stream) {
+                            closeCamera();
+                        }
+
+                        showCapturedView();
                     }
-
-                    showCapturedView();
-                } else if (response.cancelled) {
-                    console.log('User cancelled photo selection');
                 } else {
-                    alert('Failed to select photo');
+                    if (response.cancelled) {
+                        console.log('User cancelled photo selection');
+                    } else {
+                        console.error('Photo selection failed');
+                        alert('Failed to select photo');
+                    }
                 }
             }
 
@@ -382,6 +391,14 @@
                     filter: 'images'
                 }
             }));
+
+            // const event = new CustomEvent('cap-events', {
+            //     detail: {
+            //         name: 'photo-library',
+            //         selectionLimit: 1,
+            //         filter: 'images'
+            //     }
+            // })
         }
 
         function handleError() {
@@ -428,4 +445,5 @@
         });
     </script>
 </body>
+
 </html>
