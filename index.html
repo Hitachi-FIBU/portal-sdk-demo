@@ -107,8 +107,16 @@
 
         .event-icon {
             color: #DC037C;
-            width: 24px;
-            height: 24px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .event-icon svg {
+            width: 32px;
+            height: 32px;
         }
 
         .event-name {
@@ -272,7 +280,7 @@
     </div>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.546.0"></script>
 
     <script>
         // Wait for DOM to be ready
@@ -280,7 +288,9 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize Lucide icons
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
 
             // Get console output element
             consoleOutput = document.getElementById('console-output');
