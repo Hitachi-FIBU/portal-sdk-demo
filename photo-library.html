@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #F7F7F7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .back-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #DC037C;
+            font-size: 24px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #292929;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            text-align: center;
+        }
+
+        .icon-placeholder {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #292929;
+        }
+
+        .empty-description {
+            font-size: 16px;
+            color: #666666;
+            line-height: 24px;
+            max-width: 300px;
+        }
+
+        .select-button {
+            background: #DC037C;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 48px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            margin-top: 12px;
+            box-shadow: 0 4px 12px rgba(220, 3, 124, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .select-button:hover {
+            background: #b5025f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(220, 3, 124, 0.4);
+        }
+
+        .select-multiple-button {
+            background: transparent;
+            color: #DC037C;
+            border: 2px solid #DC037C;
+            border-radius: 12px;
+            padding: 14px 48px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .select-multiple-button:hover {
+            background: #DC037C;
+            color: white;
+        }
+
+        .photos-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+            padding: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .photo-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+            color: white;
+            padding: 12px;
+            font-size: 12px;
+        }
+
+        .bottom-sheet {
+            background: white;
+            padding: 24px 20px;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .primary-button {
+            width: 100%;
+            background: #DC037C;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .secondary-button {
+            width: 100%;
+            background: transparent;
+            color: #DC037C;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .photo-count {
+            text-align: center;
+            font-size: 14px;
+            color: #666666;
+            padding: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <button class="back-button" onclick="goBack()">
+            <i data-lucide="chevron-left"></i>
+        </button>
+        <div class="header-title">Photo Library</div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="container" id="emptyState">
+        <div class="empty-state">
+            <div class="icon-placeholder">📷</div>
+            <div class="empty-title">Select Photos</div>
+            <div class="empty-description">
+                Choose photos from your library to display and upload
+            </div>
+            <button class="select-button" onclick="openPhotoLibrary(1)">
+                Select 1 Photo
+            </button>
+            <button class="select-multiple-button" onclick="openPhotoLibrary(5)">
+                Select Multiple (Max 5)
+            </button>
+        </div>
+    </div>
+
+    <!-- Photos Grid -->
+    <div class="photos-grid" id="photosGrid"></div>
+
+    <!-- Bottom Sheet -->
+    <div class="bottom-sheet" id="bottomSheet">
+        <div class="photo-count" id="photoCount"></div>
+        <button class="primary-button" onclick="submitPhotos()">
+            Submit Photos
+        </button>
+        <button class="secondary-button" onclick="selectAgain()">
+            Select Again
+        </button>
+    </div>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        let selectedPhotos = [];
+
+        // Setup listener for photo library response
+        document.addEventListener('cap-events-response', (event) => {
+            const response = event.detail;
+
+            if (response.photos !== undefined) {
+                if (response.success && response.photos.length > 0) {
+                    selectedPhotos = response.photos;
+                    displayPhotos();
+                } else if (response.cancelled) {
+                    console.log('User cancelled photo selection');
+                    alert('Photo selection cancelled');
+                } else {
+                    console.error('Photo selection failed');
+                    alert('Failed to select photos');
+                }
+            }
+        });
+
+        function openPhotoLibrary(selectionLimit = 1) {
+            document.dispatchEvent(new CustomEvent('cap-events', {
+                detail: {
+                    name: 'photo-library',
+                    selectionLimit: selectionLimit,
+                    filter: 'images'
+                }
+            }));
+        }
+
+        function displayPhotos() {
+            const emptyState = document.getElementById('emptyState');
+            const photosGrid = document.getElementById('photosGrid');
+            const bottomSheet = document.getElementById('bottomSheet');
+            const photoCount = document.getElementById('photoCount');
+
+            // Hide empty state, show photos grid and bottom sheet
+            emptyState.style.display = 'none';
+            photosGrid.style.display = 'grid';
+            bottomSheet.style.display = 'flex';
+
+            // Update photo count
+            photoCount.textContent = `${selectedPhotos.length} photo${selectedPhotos.length > 1 ? 's' : ''} selected`;
+
+            // Clear previous photos
+            photosGrid.innerHTML = '';
+
+            // Add photos to grid
+            selectedPhotos.forEach((photo, index) => {
+                const imageData = photo.dataUrl || photo.data;
+                const format = photo.format || photo.type || 'unknown';
+                const filename = photo.filename || `photo-${index + 1}`;
+                const size = photo.size ? formatFileSize(photo.size) : '';
+
+                const photoItem = document.createElement('div');
+                photoItem.className = 'photo-item';
+                photoItem.innerHTML = `
+                    <img src="${imageData}" alt="${filename}">
+                    <div class="photo-info">
+                        <div>${filename}</div>
+                        ${size ? `<div>${size}</div>` : ''}
+                    </div>
+                `;
+
+                photosGrid.appendChild(photoItem);
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function submitPhotos() {
+            console.log('Submitting photos:', selectedPhotos);
+            alert(`${selectedPhotos.length} photo(s) submitted successfully!`);
+            // You can add upload logic here or process the photos
+        }
+
+        function selectAgain() {
+            const emptyState = document.getElementById('emptyState');
+            const photosGrid = document.getElementById('photosGrid');
+            const bottomSheet = document.getElementById('bottomSheet');
+
+            // Reset view
+            emptyState.style.display = 'flex';
+            photosGrid.style.display = 'none';
+            bottomSheet.style.display = 'none';
+
+            selectedPhotos = [];
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>

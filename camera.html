@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #F7F7F7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .back-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #DC037C;
+            font-size: 24px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #292929;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            background: #000;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .instruction-text {
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            padding: 0 40px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .bottom-controls {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        .capture-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 40px;
+            background: transparent;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .capture-button-inner {
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background: white;
+        }
+
+        .captured-image-container {
+            width: 100%;
+            height: 70vh;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .captured-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .bottom-sheet {
+            background: white;
+            padding: 24px 20px;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .primary-button {
+            width: 100%;
+            background: #DC037C;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            transition: background 0.3s ease;
+        }
+
+        .primary-button:hover {
+            background: #b5025f;
+        }
+
+        .secondary-button {
+            width: 100%;
+            background: transparent;
+            color: #DC037C;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .error-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            max-width: 80%;
+        }
+
+        .error-text {
+            font-size: 16px;
+            margin-bottom: 20px;
+            line-height: 24px;
+        }
+
+        .retry-button {
+            background: #DC037C;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <button class="back-button" onclick="goBack()">
+            <i data-lucide="chevron-left"></i>
+        </button>
+        <div class="header-title">Camera</div>
+    </div>
+
+    <div class="container">
+        <!-- Camera View -->
+        <div id="cameraView" style="display: none;">
+            <div class="video-container">
+                <video id="video" autoplay playsinline></video>
+                <div class="overlay">
+                    <div class="instruction-text">Capture the Document</div>
+                    <div class="bottom-controls">
+                        <button class="capture-button" onclick="capturePhoto()">
+                            <div class="capture-button-inner"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="bottom-sheet">
+                <button class="secondary-button" onclick="openPhotoLibrary()">
+                    📷 Upload from Library
+                </button>
+            </div>
+        </div>
+
+        <!-- Captured Image View -->
+        <div id="capturedView" style="display: none;">
+            <div class="captured-image-container">
+                <img id="capturedImage" class="captured-image" alt="Captured">
+            </div>
+            <div class="bottom-sheet">
+                <button class="primary-button" onclick="submitPhoto()">
+                    Submit Photo
+                </button>
+                <button class="secondary-button" onclick="retakePhoto()">
+                    Retake Photo
+                </button>
+            </div>
+        </div>
+
+        <!-- Error View -->
+        <div id="errorView" style="display: none;">
+            <div class="video-container">
+                <div class="error-container">
+                    <div class="error-text" id="errorText"></div>
+                    <button class="retry-button" onclick="handleError()">
+                        Request Permission
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+
+    <script>
+        let stream = null;
+        let capturedImageData = null;
+
+        const videoElement = document.getElementById('video');
+        const canvasElement = document.getElementById('canvas');
+        const cameraView = document.getElementById('cameraView');
+        const capturedView = document.getElementById('capturedView');
+        const errorView = document.getElementById('errorView');
+        const capturedImage = document.getElementById('capturedImage');
+        const errorText = document.getElementById('errorText');
+
+        // Setup listener for photo library response
+        document.addEventListener('cap-events-response', (event) => {
+            const response = event.detail;
+
+            // Handle photo library response
+            if (response.photos !== undefined) {
+                if (response.success && response.photos.length > 0) {
+                    const photo = response.photos[0];
+                    const imageData = photo.dataUrl || photo.data;
+
+                    capturedImageData = imageData;
+                    capturedImage.src = imageData;
+
+                    if (stream) {
+                        closeCamera();
+                    }
+
+                    showCapturedView();
+                } else if (response.cancelled) {
+                    console.log('User cancelled photo selection');
+                } else {
+                    alert('Failed to select photo');
+                }
+            }
+
+            // Handle camera permission response
+            if (response.name === 'camera-permission-result') {
+                if (response.granted) {
+                    openCamera();
+                }
+            }
+        });
+
+        async function openCamera() {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Camera API is not supported in this browser');
+                }
+
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    audio: false
+                };
+
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = stream;
+
+                showCameraView();
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                handleCameraError(error);
+            }
+        }
+
+        function handleCameraError(error) {
+            let errorMessage = 'Failed to access camera';
+
+            if (error.name === 'NotAllowedError') {
+                errorMessage = 'Camera access denied. Please grant camera permission to use this feature.';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage = 'No camera found on this device';
+            } else if (error.name === 'NotReadableError') {
+                errorMessage = 'Camera is already in use by another application';
+            }
+
+            errorText.textContent = errorMessage;
+            showErrorView();
+        }
+
+        function capturePhoto() {
+            if (videoElement && canvasElement) {
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+
+                const context = canvasElement.getContext('2d');
+                context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+
+                capturedImageData = canvasElement.toDataURL('image/png');
+                capturedImage.src = capturedImageData;
+
+                closeCamera();
+                showCapturedView();
+            }
+        }
+
+        function closeCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+        }
+
+        async function retakePhoto() {
+            capturedImageData = null;
+            await openCamera();
+        }
+
+        function submitPhoto() {
+            console.log('Photo submitted:', capturedImageData);
+            alert('Photo submitted successfully!');
+            // You can add upload logic here or send the image data somewhere
+        }
+
+        function openPhotoLibrary() {
+            document.dispatchEvent(new CustomEvent('cap-events', {
+                detail: {
+                    name: 'photo-library',
+                    selectionLimit: 1,
+                    filter: 'images'
+                }
+            }));
+        }
+
+        function handleError() {
+            // Request camera permission using HASPortal event
+            document.dispatchEvent(new CustomEvent('cap-events', {
+                detail: {
+                    name: 'camera-blocked',
+                    reason: 'permission-denied'
+                }
+            }));
+        }
+
+        function showCameraView() {
+            cameraView.style.display = 'block';
+            capturedView.style.display = 'none';
+            errorView.style.display = 'none';
+        }
+
+        function showCapturedView() {
+            cameraView.style.display = 'none';
+            capturedView.style.display = 'block';
+            errorView.style.display = 'none';
+        }
+
+        function showErrorView() {
+            cameraView.style.display = 'none';
+            capturedView.style.display = 'none';
+            errorView.style.display = 'block';
+        }
+
+        function goBack() {
+            closeCamera();
+            window.history.back();
+        }
+
+        // Initialize camera on load
+        window.addEventListener('load', () => {
+            openCamera();
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            closeCamera();
+        });
+    </script>
+</body>
+</html>

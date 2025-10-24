@@ -302,10 +302,17 @@
         document.addEventListener('cap-events-response', (event) => {
             logToConsole('received', event.detail);
 
-            // Handle specific responses
+            // Handle camera permission result
             if (event.detail.name === 'camera-permission-result') {
-                alert(`Camera permission ${event.detail.granted ? 'granted' : 'denied'}`);
-            } else if (event.detail.photos !== undefined) {
+                if (event.detail.granted) {
+                    // Permission granted, navigate to camera page
+                    window.location.href = 'camera.html';
+                } else {
+                    alert('Camera permission denied. Please enable camera access in your device settings.');
+                }
+            }
+            // Handle photo library response
+            else if (event.detail.photos !== undefined) {
                 if (event.detail.cancelled) {
                     alert('Photo selection cancelled');
                 } else if (event.detail.success) {
@@ -335,23 +342,64 @@
             logToConsole('sent', detail);
         }
 
-        function requestCamera() {
-            const detail = {
-                name: 'camera-blocked',
-                reason: 'permission-denied'
-            };
-            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
-            logToConsole('sent', detail);
+        async function requestCamera() {
+            try {
+                // Check if camera permission is available
+                if (navigator.permissions) {
+                    const permissionStatus = await navigator.permissions.query({ name: 'camera' });
+
+                    if (permissionStatus.state === 'denied') {
+                        // Permission denied, dispatch camera-blocked event
+                        const detail = {
+                            name: 'camera-blocked',
+                            reason: 'permission-denied'
+                        };
+                        document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+                        logToConsole('sent', detail);
+                        return; // Don't navigate
+                    } else if (permissionStatus.state === 'granted') {
+                        // Permission already granted, navigate directly
+                        window.location.href = 'camera.html';
+                        return;
+                    }
+                }
+
+                // For browsers that don't support permissions API or permission is 'prompt'
+                // Try to access camera to check permission
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'environment' },
+                        audio: false
+                    });
+
+                    // Permission granted, stop the stream and navigate
+                    stream.getTracks().forEach(track => track.stop());
+                    window.location.href = 'camera.html';
+                } catch (error) {
+                    // Permission denied or camera not available
+                    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                        // Dispatch camera-blocked event
+                        const detail = {
+                            name: 'camera-blocked',
+                            reason: 'permission-denied'
+                        };
+                        document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+                        logToConsole('sent', detail);
+                    } else {
+                        // Other errors (camera not found, etc.)
+                        alert(`Camera error: ${error.message}`);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking camera permission:', error);
+                // If permission check fails, try to navigate anyway
+                window.location.href = 'camera.html';
+            }
         }
 
         function openPhotoLibrary() {
-            const detail = {
-                name: 'photo-library',
-                selectionLimit: 1,
-                filter: 'images'
-            };
-            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
-            logToConsole('sent', detail);
+            // Navigate to photo library page
+            window.location.href = 'photo-library.html';
         }
 
         function openPDF() {
