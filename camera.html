@@ -280,7 +280,7 @@
 
                     if (response.photos && response.photos.length > 0) {
                         const photo = response.photos[0];
-                        const imageData = photo.dataUrl; // Android uses dataUrl
+                        const imageData = photo.dataUrl || photo.data;
 
                         capturedImageData = imageData;
                         capturedImage.src = imageData;
