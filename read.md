@@ -778,4 +778,3 @@ portal.openPDF('https://example.com/doc.pdf', 'Document')
 **SDK Compatibility:**
 - Android: Min SDK 24 (Android 7.0+)
 - iOS: 13.0+
-- WebView: Modern browsers with CustomEvent support

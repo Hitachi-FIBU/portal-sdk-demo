@@ -22,34 +22,6 @@
             flex-direction: column;
         }
 
-        .header {
-            background: white;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .back-button {
-            width: 40px;
-            height: 40px;
-            border-radius: 20px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #DC037C;
-            font-size: 24px;
-        }
-
-        .header-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #292929;
-        }
 
         .container {
             flex: 1;
@@ -213,14 +185,6 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <button class="back-button" onclick="goBack()">
-            <i data-lucide="chevron-left"></i>
-        </button>
-        <div class="header-title">Photo Library</div>
-    </div>
-
     <!-- Empty State -->
     <div class="container" id="emptyState">
         <div class="empty-state">
@@ -234,6 +198,9 @@
             </button>
             <button class="select-multiple-button" onclick="openPhotoLibrary(5)">
                 Select Multiple (Max 5)
+            </button>
+            <button class="secondary-button" onclick="goBack()">
+                Cancel
             </button>
         </div>
     </div>
@@ -249,6 +216,9 @@
         </button>
         <button class="secondary-button" onclick="selectAgain()">
             Select Again
+        </button>
+        <button class="secondary-button" onclick="goBack()">
+            Cancel
         </button>
     </div>
 
