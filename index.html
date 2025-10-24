@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HASPortal Events</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #F7F7F7;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .events-container {
+            margin-bottom: 30px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .event-section {
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .section-grid {
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        @media (max-width: 600px) {
+            .section-grid {
+                gap: 24px;
+            }
+        }
+
+        .event-card {
+            flex: 0 0 auto;
+            width: 100px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .event-card:hover .icon-wrapper {
+            transform: translateY(-2px);
+        }
+
+        .event-card:active .icon-wrapper {
+            transform: translateY(0px);
+        }
+
+        .icon-wrapper {
+            background: white;
+            border-radius: 40px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 4px 4px 8px 0px rgba(235, 231, 231, 0.2),
+                        -4px -4px 8px 0px rgba(234, 234, 234, 0.2),
+                        inset -2px 2px 2px 0px #ffffff,
+                        inset 2px -2px 2px 0px #ececec;
+            transition: all 0.3s ease;
+        }
+
+        .event-icon {
+            color: #DC037C;
+            width: 24px;
+            height: 24px;
+        }
+
+        .event-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #292929;
+            white-space: normal;
+            word-wrap: break-word;
+            width: 100%;
+        }
+
+        .console-box {
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 20px;
+            color: #d4d4d4;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .console-title {
+            color: #4ec9b0;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .log-sent {
+            border-left: 3px solid #4ec9b0;
+        }
+
+        .log-received {
+            border-left: 3px solid #ce9178;
+        }
+
+        .log-timestamp {
+            color: #858585;
+            font-size: 11px;
+            margin-right: 10px;
+        }
+
+        .log-type {
+            color: #4ec9b0;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .log-data {
+            color: #ce9178;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .clear-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HASPortal Events</h1>
+
+        <div class="events-container">
+            <!-- Navigation Section -->
+            <div class="event-section">
+                <div class="section-header">Navigation</div>
+                <div class="section-grid">
+                    <!-- Close Portal -->
+                    <div class="event-card" onclick="closePortal()">
+                        <div class="icon-wrapper">
+                            <i data-lucide="x-circle" class="event-icon"></i>
+                        </div>
+                        <div class="event-name">Close Portal</div>
+                    </div>
+
+                    <!-- Open Portal -->
+                    <div class="event-card" onclick="openPortal()">
+                        <div class="icon-wrapper">
+                            <i data-lucide="external-link" class="event-icon"></i>
+                        </div>
+                        <div class="event-name">Open Portal</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media Section -->
+            <div class="event-section">
+                <div class="section-header">Media</div>
+                <div class="section-grid">
+                    <!-- Camera Permission -->
+                    <div class="event-card" onclick="requestCamera()">
+                        <div class="icon-wrapper">
+                            <i data-lucide="camera" class="event-icon"></i>
+                        </div>
+                        <div class="event-name">Camera</div>
+                    </div>
+
+                    <!-- Photo Library -->
+                    <div class="event-card" onclick="openPhotoLibrary()">
+                        <div class="icon-wrapper">
+                            <i data-lucide="images" class="event-icon"></i>
+                        </div>
+                        <div class="event-name">Photo Library</div>
+                    </div>
+
+                    <!-- PDF Viewer -->
+                    <div class="event-card" onclick="openPDF()">
+                        <div class="icon-wrapper">
+                            <i data-lucide="file-text" class="event-icon"></i>
+                        </div>
+                        <div class="event-name">Open PDF</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Section -->
+            <div class="event-section">
+                <div class="section-header">System</div>
+                <div class="section-grid">
+                    <!-- Application Error -->
+                    <div class="event-card" onclick="showError()">
+                        <div class="icon-wrapper">
+                            <i data-lucide="alert-circle" class="event-icon"></i>
+                        </div>
+                        <div class="event-name">Show Error</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Console Output -->
+        <div class="console-box">
+            <div class="console-title">Event Console</div>
+            <div id="console-output"></div>
+            <button class="clear-btn" onclick="clearConsole()">Clear Console</button>
+        </div>
+    </div>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Console logging
+        const consoleOutput = document.getElementById('console-output');
+
+        function logToConsole(type, data) {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `
+                <span class="log-timestamp">[${timestamp}]</span>
+                <span class="log-type">${type.toUpperCase()}</span>
+                <div class="log-data">${JSON.stringify(data, null, 2)}</div>
+            `;
+            consoleOutput.appendChild(entry);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        function clearConsole() {
+            consoleOutput.innerHTML = '';
+        }
+
+        // Setup listener for responses from native
+        document.addEventListener('cap-events-response', (event) => {
+            logToConsole('received', event.detail);
+
+            // Handle specific responses
+            if (event.detail.name === 'camera-permission-result') {
+                alert(`Camera permission ${event.detail.granted ? 'granted' : 'denied'}`);
+            } else if (event.detail.photos !== undefined) {
+                if (event.detail.cancelled) {
+                    alert('Photo selection cancelled');
+                } else if (event.detail.success) {
+                    alert(`Selected ${event.detail.photos.length} photo(s)`);
+                } else {
+                    alert('Failed to select photos');
+                }
+            }
+        });
+
+        // Event trigger functions
+        function closePortal() {
+            const detail = { name: 'close' };
+            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+            logToConsole('sent', detail);
+        }
+
+        function openPortal() {
+            const detail = {
+                name: 'open',
+                url: 'https://example.com/page',
+                toolbarType: 'navigation',
+                showHeader: true,
+                title: 'Example Page',
+            };
+            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+            logToConsole('sent', detail);
+        }
+
+        function requestCamera() {
+            const detail = {
+                name: 'camera-blocked',
+                reason: 'permission-denied'
+            };
+            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+            logToConsole('sent', detail);
+        }
+
+        function openPhotoLibrary() {
+            const detail = {
+                name: 'photo-library',
+                selectionLimit: 1,
+                filter: 'images'
+            };
+            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+            logToConsole('sent', detail);
+        }
+
+        function openPDF() {
+            const detail = {
+                name: 'intent',
+                type: 'application/pdf',
+                url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+                title: 'Sample PDF Document'
+            };
+            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+            logToConsole('sent', detail);
+        }
+
+        function showError() {
+            const detail = { name: 'application-error' };
+            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+            logToConsole('sent', detail);
+        }
+
+        // Log initial message
+        logToConsole('received', { message: 'HASPortal Events initialized. Tap any icon to trigger an event.' });
+    </script>
+</body>
+</html>
