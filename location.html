@@ -601,16 +601,34 @@
 
             if (response.event === 'viewport-info-response') {
                 handleViewportInfo(response);
-            } else if (response.event === 'permission-response') {
+            } else if (response.event === 'permission') {
                 console.log('📥 Location permission response received:', response);
-                // This should trigger the location permission handler
+                if (response.success) {
+                    console.log('✅ Permission granted - retrying location request');
+                    // Hide error view and show normal view
+                    showNormalView();
+                    // Retry location permission request
+                    requestLocationPermission();
+                } else {
+                    console.warn('⚠️ Permission still denied');
+                    // Error view stays visible with retry button
+                }
             }
         });
 
-        // Handle app resume - refresh contacts and viewport
+        // Handle app resume - retry location permission and refresh viewport
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
-                console.log('📱 App resumed - refreshing contacts and viewport');
+                console.log('📱 App resumed - retrying location permission and refreshing viewport');
+
+                // Check if error view is visible (user might have returned from Settings)
+                const errorView = document.getElementById('errorView');
+                if (errorView && errorView.style.display !== 'none') {
+                    console.log('🔄 Error view visible - retrying location permission');
+                    showNormalView();
+                    requestLocationPermission();
+                }
+
                 requestViewportInfo();
             }
         });
@@ -733,13 +751,15 @@
         }
 
         function handleLocationErrorRetry() {
-            console.log('🔄 Retrying location permission...');
+            console.log('🔄 Requesting location permission via Settings...');
 
-            // Hide error view and show normal view
-            showNormalView();
-
-            // Try to request permission again
-            requestLocationPermission();
+            // Dispatch permission-blocked event to open iOS Settings
+            document.dispatchEvent(new CustomEvent('cap-events', {
+                detail: {
+                    name: 'permission-blocked',
+                    type: 'location'
+                }
+            }));
         }
 
         function updatePermissionStatus(status, title, subtitle) {
