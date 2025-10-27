@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Select Recipient</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,7 +26,6 @@
         }
 
         .container {
-            max-width: 390px;
             margin: 0 auto;
             background: white;
             box-shadow: 0px 4px 24px 0px rgba(0, 0, 0, 0.1);
@@ -34,7 +36,7 @@
         .header {
             background: white;
             padding: 16px 28px;
-            height: 81px;
+            min-height: 81px;
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
@@ -44,6 +46,7 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            transition: padding-top 0.3s ease;
         }
 
         .back-button {
@@ -229,7 +232,6 @@
                 <i data-lucide="chevron-left"></i>
             </button>
             <div class="header-title">Select Recipient</div>
-            <button class="skip-button" onclick="skipSelection()">Skip</button>
         </div>
 
         <!-- Search Bar -->
@@ -345,8 +347,10 @@
                     const fullName = `${contact.firstName} ${contact.lastName || ''}`.trim();
                     const phone = contact.phoneNumbers[0];
 
+                    const encodedContact = encodeURIComponent(JSON.stringify(contact));
+
                     return `
-                        <div class="contact-item" onclick="selectContact('${fullName}', '${phone}', ${JSON.stringify(contact).replace(/'/g, "&apos;")})">
+                        <div class="contact-item" onclick="selectContact('${fullName}', '${phone}', '${encodedContact}')">
                             <div class="contact-info">
                                 <div class="avatar" style="background-color: ${bgColor}; color: ${textColor};">
                                     ${abbr}
@@ -394,7 +398,7 @@
             document.dispatchEvent(new CustomEvent('cap-events', {
                 detail: {
                     name: 'permission-blocked',
-                    reason: 'contacts'
+                    type: 'contacts'
                 }
             }));
         }
@@ -436,15 +440,32 @@
                         </div>
                     `;
                 }
+            } else if (response.event === 'viewport-info-response') {
+                handleViewportInfo(response);
             }
         });
 
-        // Handle app resume - refresh contacts
+        // Handle app resume - refresh contacts and viewport
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
-                console.log('📱 App resumed - refreshing contacts');
+                console.log('📱 App resumed - refreshing contacts and viewport');
                 requestContactsPermission();
+                requestViewportInfo();
             }
+        });
+
+        // Handle orientation changes - update viewport info
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                console.log('📱 Orientation changed - updating viewport');
+                requestViewportInfo();
+            }, 100); // Small delay to allow for orientation to complete
+        });
+
+        // Handle window resize - update viewport info
+        window.addEventListener('resize', () => {
+            console.log('📱 Window resized - updating viewport');
+            requestViewportInfo();
         });
 
         function goBack() {
@@ -456,7 +477,8 @@
             alert('Skipped contact selection');
         }
 
-        function selectContact(name, phone, contact) {
+        function selectContact(name, phone, encodedContact) {
+            const contact = JSON.parse(decodeURIComponent(encodedContact));
             console.log('Selected contact:', name, phone, contact);
 
             // Trigger share intent for the selected contact
@@ -486,9 +508,34 @@
             handleSearch(e.target.value);
         });
 
-        // Initialize - Request contacts on load
+        // Request viewport info for safe area handling
+        function requestViewportInfo() {
+            console.log('📤 Requesting viewport info...');
+            document.dispatchEvent(new CustomEvent('cap-events', {
+                detail: { name: 'get-viewport-info' }
+            }));
+        }
+
+        // Handle viewport info response
+        function handleViewportInfo(response) {
+            if (response.event === 'viewport-info-response') {
+                const safeAreaInsets = response.safeAreaInsets;
+                console.log('📥 Received viewport info:', safeAreaInsets);
+
+                // Apply safe area top inset to header
+                const header = document.querySelector('.header');
+                if (header && safeAreaInsets) {
+                    const topInset = safeAreaInsets.top || 0;
+                    header.style.paddingTop = `${16 + topInset}px`; // 16px base + safe area
+                    console.log(`✅ Applied top safe area: ${topInset}px`);
+                }
+            }
+        }
+
+        // Initialize - Request contacts and viewport info on load
         window.addEventListener('load', () => {
             requestContactsPermission();
+            requestViewportInfo();
         });
     </script>
 </body>
