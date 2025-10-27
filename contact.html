@@ -393,8 +393,8 @@
             console.log('📤 Requesting contact permission via settings...');
             document.dispatchEvent(new CustomEvent('cap-events', {
                 detail: {
-                    name: 'contact-blocked',
-                    reason: 'permission-denied'
+                    name: 'permission-blocked',
+                    reason: 'contacts'
                 }
             }));
         }
