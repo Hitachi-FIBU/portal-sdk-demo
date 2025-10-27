@@ -388,6 +388,17 @@
             }));
         }
 
+        // Handle contact permission blocked - request via settings
+        function handleContactBlocked() {
+            console.log('📤 Requesting contact permission via settings...');
+            document.dispatchEvent(new CustomEvent('cap-events', {
+                detail: {
+                    name: 'contact-blocked',
+                    reason: 'permission-denied'
+                }
+            }));
+        }
+
         // Listen for contact response
         document.addEventListener('cap-events-response', (event) => {
             const response = event.detail;
@@ -419,7 +430,7 @@
                         <div style="padding: 40px 24px; text-align: center;">
                             <p style="color: #e20079; font-size: 16px; margin-bottom: 12px;">Permission Denied</p>
                             <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Please enable contact access in Settings</p>
-                            <button class="skip-button" style="padding: 12px 24px; border-radius: 8px; background: #e20079; color: white;" onclick="requestContactsPermission()">
+                            <button class="skip-button" style="padding: 12px 24px; border-radius: 8px; background: #e20079; color: white;" onclick="handleContactBlocked()">
                                 Retry Permission
                             </button>
                         </div>
