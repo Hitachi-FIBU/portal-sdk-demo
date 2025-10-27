@@ -447,9 +447,26 @@
 
         function selectContact(name, phone, contact) {
             console.log('Selected contact:', name, phone, contact);
-            alert(`Selected: ${name}\n${phone}`);
-            // You can dispatch a custom event here to send data back to parent
-            // document.dispatchEvent(new CustomEvent('contact-selected', { detail: contact }));
+
+            // Trigger share intent for the selected contact
+            onClickInvite();
+
+            // You can also dispatch a custom event here to send data back to parent
+            document.dispatchEvent(new CustomEvent('contact-selected', { detail: contact }));
+        }
+
+        function onClickInvite() {
+            console.log('📤 Sharing invitation...');
+            const event = new CustomEvent('cap-events', {
+                detail: {
+                    name: 'intent',
+                    type: 'share',
+                    title: 'Referral Invitation',
+                    text: 'Sign Up my referral code it rewards you for every transaction!',
+                    url: 'https://hitachi-fibu.github.io/portal-sdk-demo'
+                }
+            });
+            document.dispatchEvent(event);
         }
 
         // Search functionality
