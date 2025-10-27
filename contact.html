@@ -422,15 +422,21 @@
                 } else {
                     console.error('❌ Error loading contacts:', response.data.error);
                     const contactListDiv = document.getElementById('contactList');
-                    contactListDiv.innerHTML = `
-                        <div style="padding: 40px 24px; text-align: center; color: #e20079;">
-                            <p>Error loading contacts</p>
-                            <p style="font-size: 14px; color: #666; margin-top: 8px;">${response.data.error || 'Unknown error'}</p>
+                   contactListDiv.innerHTML = `
+                        <div style="padding: 40px 24px; text-align: center;">
+                            <p style="color: #e20079; font-size: 16px; margin-bottom: 12px;">Permission Denied</p>
+                            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Please enable contact access in Settings</p>
+                            <button class="skip-button" style="padding: 12px 24px; border-radius: 8px; background: #e20079; color: white;" onclick="handleContactBlocked()">
+                                Retry Permission
+                            </button>
                         </div>
                     `;
                 }
             } else if (response.event === 'permission') {
-                if (!response.success) {
+                if (response.success) {
+                    console.log('✅ Permission granted - loading contacts');
+                    requestContactsPermission();
+                } else {
                     console.warn('⚠️ Permission denied');
                     const contactListDiv = document.getElementById('contactList');
                     contactListDiv.innerHTML = `
