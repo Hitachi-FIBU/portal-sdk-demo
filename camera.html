@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Camera</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,6 +30,8 @@
             width: 100vw;
             height: 100vh;
             overflow: hidden;
+            padding-top: 0px;
+            transition: padding-top 0.3s ease;
         }
 
         .video-container {
@@ -308,6 +313,11 @@
                     openCamera();
                 }
             }
+
+            // Handle viewport info response
+            if (response.event === 'viewport-info-response') {
+                handleViewportInfo(response);
+            }
         });
 
         async function openCamera() {
@@ -435,9 +445,56 @@
             window.history.back();
         }
 
-        // Initialize camera on load
+        // Request viewport info for safe area handling
+        function requestViewportInfo() {
+            console.log('📤 Requesting viewport info...');
+            document.dispatchEvent(new CustomEvent('cap-events', {
+                detail: { name: 'get-viewport-info' }
+            }));
+        }
+
+        // Handle viewport info response
+        function handleViewportInfo(response) {
+            if (response.event === 'viewport-info-response') {
+                const safeAreaInsets = response.safeAreaInsets;
+                console.log('📥 Received viewport info:', safeAreaInsets);
+
+                // Apply safe area top inset to container
+                const container = document.querySelector('.container');
+                if (container && safeAreaInsets) {
+                    const topInset = safeAreaInsets.top || 0;
+                    container.style.paddingTop = `${topInset}px`; // Only safe area, no base padding
+                    console.log(`✅ Applied top safe area: ${topInset}px`);
+                }
+            }
+        }
+
+        // Initialize camera and viewport info on load
         window.addEventListener('load', () => {
+            requestViewportInfo();
             openCamera();
+        });
+
+        // Handle app resume - refresh viewport
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('📱 App resumed - updating viewport');
+                requestViewportInfo();
+            }
+        });
+
+        // Handle orientation changes - update viewport info
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                console.log('📱 Orientation changed - updating viewport');
+                requestViewportInfo();
+            }, 100);
+        });
+
+        // Handle window resize - update viewport info
+        window.addEventListener('resize', () => {
+            console.log('📱 Window resized - updating viewport');
+            requestViewportInfo();
         });
 
         // Cleanup on page unload
