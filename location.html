@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Location Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Mapbox GL JS CSS and JS -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            /* Prevent double-tap zoom while allowing text selection */
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+        }
+
+        .container {
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0px 4px 24px 0px rgba(0, 0, 0, 0.1);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 16px 28px;
+            min-height: 81px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            box-shadow: 0px 4px 16px 0px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            transition: padding-top 0.3s ease;
+        }
+
+        .back-button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-button i {
+            width: 22px;
+            height: 22px;
+            color: #000;
+        }
+
+        .back-button svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 400;
+            color: #000;
+            flex: 1;
+            text-align: center;
+        }
+
+        .skip-button {
+            background: transparent;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 400;
+            color: #e20079;
+            cursor: pointer;
+        }
+
+        /* Search Bar */
+        .search-section {
+            background: white;
+            padding: 16px 24px;
+        }
+
+        .search-bar {
+            background: #f8f8f8;
+            border: 1px solid #cdcdcd;
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-icon {
+            width: 16px;
+            height: 16px;
+            color: #686868;
+        }
+
+        .search-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .search-input {
+            border: none;
+            background: transparent;
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 400;
+            color: #202020;
+            outline: none;
+            flex: 1;
+        }
+
+        .search-input::placeholder {
+            color: #686868;
+        }
+
+        /* Contact List */
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+            letter-spacing: -0.31px;
+        }
+
+        /* Contact List */
+        .contact-list {
+            background: white;
+        }
+
+        .alphabet-section {
+            margin-bottom: 0;
+        }
+
+        .alphabet-header {
+            background: white;
+            padding: 8px 24px;
+        }
+
+        .alphabet-letter {
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: #9e9e9e;
+            letter-spacing: -0.27px;
+        }
+
+        .contact-item {
+            background: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #f7f7f7;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .contact-item:hover {
+            background: #fafafa;
+        }
+
+        .contact-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .contact-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .contact-details-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            color: #202020;
+            line-height: 1.3;
+        }
+
+        .contact-phone {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: #686868;
+            line-height: 1.3;
+        }
+
+        .chevron-icon {
+            width: 16px;
+            height: 16px;
+            color: #9e9e9e;
+        }
+
+        .chevron-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Location Demo Specific Styles */
+        .permission-status {
+            background: white;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-icon.granted {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-icon.denied {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-icon.checking {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-text {
+            flex: 1;
+        }
+
+        .status-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            color: #202020;
+            margin-bottom: 4px;
+        }
+
+        .status-subtitle {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            color: #686868;
+        }
+
+        /* Map Container */
+        .map-section {
+            background: white;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #686868;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+
+        /* Location Info Panel */
+        .location-info {
+            background: white;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .info-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            color: #686868;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: #202020;
+            word-break: break-all;
+        }
+
+        /* Control Buttons */
+        .controls-section {
+            background: white;
+            padding: 16px 24px;
+        }
+
+        .control-button {
+            width: 100%;
+            background: #e20079;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 12px;
+            transition: background 0.2s;
+        }
+
+        .control-button:hover {
+            background: #c10066;
+        }
+
+        .control-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .control-button.secondary {
+            background: #6c757d;
+        }
+
+        .control-button.secondary:hover {
+            background: #5a6268;
+        }
+
+        .control-button.danger {
+            background: #dc3545;
+        }
+
+        .control-button.danger:hover {
+            background: #c82333;
+        }
+
+        /* Location Watching Status */
+        .watching-status {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .watching-status.active {
+            display: block;
+        }
+
+        .watching-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: #004085;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #007bff;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Additional zoom prevention for interactive elements */
+        button, .control-button, .back-button, .status-card {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Prevent zoom on map container */
+        .map-container, #map {
+            touch-action: manipulation;
+        }
+
+        /* Error View Styles */
+        .error-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            max-width: 80%;
+        }
+
+        .error-text {
+            font-size: 16px;
+            margin-bottom: 20px;
+            line-height: 24px;
+        }
+
+        .retry-button {
+            background: #e20079;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .retry-button:hover {
+            background: #c10066;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-button" onclick="goBack()">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <div class="header-title">Location</div>
+        </div>
+
+        <!-- Permission Status -->
+        <div class="permission-status">
+            <div class="status-card" id="permission-status-card">
+                <div class="status-icon checking" id="permission-icon">?</div>
+                <div class="status-text">
+                    <div class="status-title" id="permission-title">Checking Location Permission...</div>
+                    <div class="status-subtitle" id="permission-subtitle">Verifying access to device location</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="map-section">
+            <div class="map-container" id="map-container">
+                <div id="map-placeholder">Your location will appear here once permission is granted<br><small style="color: #999; margin-top: 8px; display: block;">We need location permission to show your position on the map</small></div>
+                <div id="map" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Location Information -->
+        <div class="location-info">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Latitude</div>
+                    <div class="info-value" id="latitude-value">--</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Longitude</div>
+                    <div class="info-value" id="longitude-value">--</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Accuracy</div>
+                    <div class="info-value" id="accuracy-value">--</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Last Update</div>
+                    <div class="info-value" id="timestamp-value">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-section">
+            <div class="watching-status" id="watching-status">
+                <div class="watching-text">
+                    <div class="pulse-dot"></div>
+                    <span>Tracking location... <span id="update-counter">0</span> updates</span>
+                </div>
+            </div>
+
+            <button class="control-button" id="get-location-btn" onclick="requestLocationPermission()">
+                Get My Location
+            </button>
+
+            <button class="control-button secondary" id="start-watching-btn" onclick="startLocationWatching()" disabled>
+                Start Location Tracking
+            </button>
+
+            <button class="control-button danger" id="stop-watching-btn" onclick="stopLocationWatching()" disabled style="display: none;">
+                Stop Location Tracking
+            </button>
+
+            <button class="control-button secondary" onclick="clearLocationHistory()">
+                Clear Location History
+            </button>
+        </div>
+
+        <!-- Error View for Permission Denied -->
+        <div id="errorView" style="display: none;">
+            <div class="map-section">
+                <div class="map-container">
+                    <div class="error-container">
+                        <div class="error-text" id="errorText"></div>
+                        <button class="retry-button" onclick="handleLocationErrorRetry()">
+                            Request Permission
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@0.546.0"></script>
+    <!-- Lodash for utilities -->
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+
+
+        // Listen for all responses
+        document.addEventListener('cap-events-response', (event) => {
+            const response = event.detail;
+            console.log('📥 Received response:', response);
+
+            if (response.event === 'viewport-info-response') {
+                handleViewportInfo(response);
+            } else if (response.event === 'permission-response') {
+                console.log('📥 Location permission response received:', response);
+                // This should trigger the location permission handler
+            }
+        });
+
+        // Handle app resume - refresh contacts and viewport
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('📱 App resumed - refreshing contacts and viewport');
+                requestViewportInfo();
+            }
+        });
+
+        // Handle orientation changes - update viewport info
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                console.log('📱 Orientation changed - updating viewport');
+                requestViewportInfo();
+            }, 100); // Small delay to allow for orientation to complete
+        });
+
+        // Handle window resize - update viewport info
+        window.addEventListener('resize', () => {
+            console.log('📱 Window resized - updating viewport');
+            requestViewportInfo();
+        });
+
+        function goBack() {
+            window.history.back();
+        }
+
+
+        // Request viewport info for safe area handling
+        function requestViewportInfo() {
+            console.log('📤 Requesting viewport info...');
+            document.dispatchEvent(new CustomEvent('cap-events', {
+                detail: { name: 'get-viewport-info' }
+            }));
+        }
+
+        // Handle viewport info response
+        function handleViewportInfo(response) {
+            if (response.event === 'viewport-info-response') {
+                const safeAreaInsets = response.safeAreaInsets;
+                console.log('📥 Received viewport info:', safeAreaInsets);
+
+                // Apply safe area top inset to header
+                const header = document.querySelector('.header');
+                if (header && safeAreaInsets) {
+                    const topInset = safeAreaInsets.top || 0;
+                    header.style.paddingTop = `${16 + topInset}px`; // 16px base + safe area
+                    console.log(`✅ Applied top safe area: ${topInset}px`);
+                }
+            }
+        }
+
+        // Global variables for location functionality
+        let map = null;
+        let userMarker = null;
+        let watchId = null;
+        let updateCounter = 0;
+        let locationPath = [];
+
+        // HTML5 Geolocation Functions
+        function requestLocationPermission() {
+            console.log('📍 Requesting location permission...');
+
+            // Update UI to show checking status
+            updatePermissionStatus('checking', 'Requesting Location Permission', 'Asking for permission to access your location');
+
+            const btn = document.getElementById('get-location-btn');
+            btn.textContent = 'Requesting Permission...';
+            btn.disabled = true;
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 300000 // Accept cached position if less than 5 minutes old
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    console.log('📍 Location permission granted and position obtained:', position);
+                    handleLocationSuccess(position);
+                    updatePermissionStatus('granted', 'Location Permission Granted', 'Successfully obtained your location');
+                    enableLocationControls();
+                    btn.textContent = 'Get My Location';
+                    btn.disabled = false;
+                },
+                (error) => {
+                    console.error('❌ Location permission denied or error:', error);
+                    handleLocationError(error);
+                    btn.textContent = 'Get My Location';
+                    btn.disabled = false;
+                },
+                options
+            );
+        }
+
+        function handleLocationError(error) {
+            let message = 'Failed to access your location';
+
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    message = 'Location access denied. Please grant location permission to use this feature.';
+                    updatePermissionStatus('denied', 'Location Permission Denied', 'User denied location access');
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = 'Location information is unavailable. Please check your GPS settings.';
+                    updatePermissionStatus('denied', 'Location Unavailable', 'GPS or location services unavailable');
+                    break;
+                case error.TIMEOUT:
+                    message = 'Location request timed out. Please try again.';
+                    updatePermissionStatus('denied', 'Location Timeout', 'Unable to get location within time limit');
+                    break;
+                default:
+                    message = 'An unknown error occurred while accessing your location.';
+                    updatePermissionStatus('denied', 'Location Error', 'Unknown error occurred');
+                    break;
+            }
+
+            console.log('❌ Location error:', message);
+            showLocationError(message);
+        }
+
+        function showLocationError(message) {
+            document.getElementById('errorText').textContent = message;
+            showErrorView();
+        }
+
+        function handleLocationErrorRetry() {
+            console.log('🔄 Retrying location permission...');
+
+            // Hide error view and show normal view
+            showNormalView();
+
+            // Try to request permission again
+            requestLocationPermission();
+        }
+
+        function updatePermissionStatus(status, title, subtitle) {
+            const icon = document.getElementById('permission-icon');
+            const titleEl = document.getElementById('permission-title');
+            const subtitleEl = document.getElementById('permission-subtitle');
+
+            // Remove all status classes
+            icon.classList.remove('granted', 'denied', 'checking');
+
+            // Add new status class and update content
+            icon.classList.add(status);
+
+            switch (status) {
+                case 'granted':
+                    icon.textContent = '✓';
+                    break;
+                case 'denied':
+                    icon.textContent = '✗';
+                    break;
+                case 'checking':
+                    icon.textContent = '?';
+                    break;
+            }
+
+            titleEl.textContent = title;
+            subtitleEl.textContent = subtitle;
+        }
+
+        function enableLocationControls() {
+            document.getElementById('start-watching-btn').disabled = false;
+        }
+
+        function handleLocationSuccess(position) {
+            const { latitude, longitude, accuracy, timestamp } = position.coords;
+
+            console.log(`📍 Location: ${latitude}, ${longitude} (±${Math.round(accuracy)}m)`);
+
+            // Update location info display
+            updateLocationInfo(position);
+
+            // Initialize or update map
+            if (!map) {
+                initializeMap(latitude, longitude);
+            } else {
+                updateMapLocation(latitude, longitude, accuracy);
+            }
+        }
+
+        function initializeMap(lat, lng) {
+            console.log('🗺️ Initializing Mapbox map...');
+
+            // Show map container and hide placeholder
+            document.getElementById('map-placeholder').style.display = 'none';
+            document.getElementById('map').style.display = 'block';
+
+            // Set Mapbox access token (from user's React code)
+            mapboxgl.accessToken = 'pk.eyJ1IjoiY2hyaXN5ZWVob25nIiwiYSI6ImNtNDlqOTB3MjBhczEyaXNkc2gyYzFwZ2cifQ.wGMLKu0LNDfeDtun05RE6w';
+
+            // Initialize Mapbox GL JS map
+            map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v11', // Using same style as user's React code
+                center: [lng, lat], // Mapbox uses [lng, lat] format
+                zoom: 16
+            });
+
+            // Add user location marker
+            const markerElement = document.createElement('div');
+            markerElement.style.width = '20px';
+            markerElement.style.height = '20px';
+            markerElement.style.borderRadius = '50%';
+            markerElement.style.backgroundColor = '#007bff';
+            markerElement.style.border = '3px solid white';
+            markerElement.style.boxShadow = '0 0 10px rgba(0,0,0,0.25)';
+
+            userMarker = new mapboxgl.Marker(markerElement)
+                .setLngLat([lng, lat])
+                .addTo(map);
+
+            // Add accuracy circle as a source and layer
+            map.on('load', () => {
+                addAccuracyCircle(lng, lat, 50);
+            });
+
+            console.log('✅ Mapbox map initialized');
+        }
+
+        function addAccuracyCircle(lng, lat, accuracy) {
+            // Add accuracy circle as a GeoJSON source
+            const circleGeoJSON = createCircleGeoJSON([lng, lat], accuracy);
+
+            map.addSource('accuracy-circle', {
+                type: 'geojson',
+                data: circleGeoJSON
+            });
+
+            map.addLayer({
+                id: 'accuracy-circle-fill',
+                type: 'fill',
+                source: 'accuracy-circle',
+                paint: {
+                    'fill-color': '#007bff',
+                    'fill-opacity': 0.1
+                }
+            });
+
+            map.addLayer({
+                id: 'accuracy-circle-stroke',
+                type: 'line',
+                source: 'accuracy-circle',
+                paint: {
+                    'line-color': '#007bff',
+                    'line-width': 2,
+                    'line-opacity': 0.8
+                }
+            });
+        }
+
+        function createCircleGeoJSON(center, radiusInMeters) {
+            const points = 64;
+            const coords = [];
+            const km = radiusInMeters / 1000;
+
+            for (let i = 0; i < points; i++) {
+                const angle = (i / points) * 2 * Math.PI;
+                const dx = km * Math.cos(angle);
+                const dy = km * Math.sin(angle);
+                const lng = center[0] + (dx / (111.32 * Math.cos(center[1] * Math.PI / 180)));
+                const lat = center[1] + (dy / 110.54);
+                coords.push([lng, lat]);
+            }
+            coords.push(coords[0]); // Close the polygon
+
+            return {
+                type: 'Feature',
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [coords]
+                }
+            };
+        }
+
+        function updateMapLocation(lat, lng, accuracy) {
+            if (!map || !userMarker) return;
+
+            console.log(`🗺️ Updating Mapbox map location: ${lat}, ${lng}`);
+
+            // Update marker position (Mapbox uses [lng, lat] format)
+            userMarker.setLngLat([lng, lat]);
+
+            // Update accuracy circle
+            if (map.getSource('accuracy-circle')) {
+                const circleGeoJSON = createCircleGeoJSON([lng, lat], accuracy || 50);
+                map.getSource('accuracy-circle').setData(circleGeoJSON);
+            }
+
+            // Center map on new location
+            map.setCenter([lng, lat]);
+
+            // Add to location path for watching
+            locationPath.push([lng, lat]);
+
+            // Update path polyline if watching
+            if (locationPath.length > 1) {
+                updateLocationPath();
+            }
+        }
+
+        function updateLocationPath() {
+            if (!map || locationPath.length < 2) return;
+
+            const pathGeoJSON = {
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: locationPath
+                }
+            };
+
+            if (map.getSource('location-path')) {
+                // Update existing path
+                map.getSource('location-path').setData(pathGeoJSON);
+            } else {
+                // Create new path
+                map.addSource('location-path', {
+                    type: 'geojson',
+                    data: pathGeoJSON
+                });
+
+                map.addLayer({
+                    id: 'location-path',
+                    type: 'line',
+                    source: 'location-path',
+                    paint: {
+                        'line-color': '#e20079',
+                        'line-width': 3,
+                        'line-opacity': 0.7
+                    }
+                });
+            }
+        }
+
+        function updateLocationInfo(position) {
+            const { latitude, longitude, accuracy, timestamp } = position.coords;
+
+            document.getElementById('latitude-value').textContent = latitude.toFixed(6);
+            document.getElementById('longitude-value').textContent = longitude.toFixed(6);
+            document.getElementById('accuracy-value').textContent = `±${Math.round(accuracy || 0)}m`;
+            document.getElementById('timestamp-value').textContent = new Date(timestamp).toLocaleTimeString();
+        }
+
+        // Real Location Tracking Functions
+        function startLocationWatching() {
+            if (watchId !== null) {
+                console.log('⚠️ Location watching already active');
+                return;
+            }
+
+            console.log('👀 Starting location tracking...');
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 1000 // Accept cached position if less than 1 second old
+            };
+
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    updateCounter++;
+                    console.log(`👀 Location update #${updateCounter}:`, position);
+
+                    // Update location info and map
+                    handleLocationSuccess(position);
+
+                    // Update counter display
+                    document.getElementById('update-counter').textContent = updateCounter;
+
+                    // Update path polyline if we have multiple points
+                    if (map && locationPath.length > 1) {
+                        updateLocationPath();
+                    }
+                },
+                (error) => {
+                    console.error('❌ Location watching error:', error);
+                    handleLocationError(error);
+                },
+                options
+            );
+
+            // Update UI state
+            updateWatchingUI(true);
+        }
+
+        function stopLocationWatching() {
+            if (watchId === null) {
+                console.log('⚠️ Location watching not active');
+                return;
+            }
+
+            console.log('🛑 Stopping location tracking...');
+
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+
+            // Update UI state
+            updateWatchingUI(false);
+
+            console.log(`✅ Location tracking stopped. Total updates: ${updateCounter}`);
+        }
+
+        function updateWatchingUI(isWatching) {
+            const watchingStatus = document.getElementById('watching-status');
+            const startBtn = document.getElementById('start-watching-btn');
+            const stopBtn = document.getElementById('stop-watching-btn');
+            const getLocationBtn = document.getElementById('get-location-btn');
+
+            if (isWatching) {
+                // Show watching status
+                watchingStatus.classList.add('active');
+
+                // Hide start button, show stop button
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'block';
+                stopBtn.disabled = false;
+
+                // Disable get location button while watching
+                getLocationBtn.disabled = true;
+                getLocationBtn.textContent = 'Tracking Active...';
+
+                console.log('✅ Started location tracking');
+            } else {
+                // Hide watching status
+                watchingStatus.classList.remove('active');
+
+                // Show start button, hide stop button
+                startBtn.style.display = 'block';
+                stopBtn.style.display = 'none';
+                startBtn.disabled = false;
+
+                // Re-enable get location button
+                getLocationBtn.disabled = false;
+                getLocationBtn.textContent = 'Get My Location';
+
+                console.log('✅ Stopped location tracking');
+            }
+        }
+
+        // View Management Functions
+        function showErrorView() {
+            document.getElementById('errorView').style.display = 'block';
+            document.querySelector('.permission-status').style.display = 'none';
+            document.querySelector('.map-section').style.display = 'none';
+            document.querySelector('.location-info').style.display = 'none';
+            document.querySelector('.controls-section').style.display = 'none';
+        }
+
+        function showNormalView() {
+            document.getElementById('errorView').style.display = 'none';
+            document.querySelector('.permission-status').style.display = 'block';
+            document.querySelector('.map-section').style.display = 'block';
+            document.querySelector('.location-info').style.display = 'block';
+            document.querySelector('.controls-section').style.display = 'block';
+        }
+
+        function clearLocationHistory() {
+            // Clear the path array
+            locationPath = [];
+            updateCounter = 0;
+
+            // Remove path from Mapbox map
+            if (map && map.getSource('location-path')) {
+                map.removeLayer('location-path');
+                map.removeSource('location-path');
+            }
+
+            // Reset counter display
+            document.getElementById('update-counter').textContent = '0';
+
+            console.log('🗑️ Location history cleared');
+        }
+
+        // Initialize - Request viewport info on load (no auto location request)
+        window.addEventListener('load', () => {
+            requestViewportInfo();
+
+            // Set initial permission status
+            updatePermissionStatus('checking', 'Ready to Get Location', 'Click "Get My Location" to request location permission');
+        });
+    </script>
+</body>
+
+</html>
