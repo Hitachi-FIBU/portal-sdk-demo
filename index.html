@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>HASPortal Events</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,6 +23,7 @@
             background: #F7F7F7;
             min-height: 100vh;
             padding: 20px;
+            transition: padding-top 0.3s ease;
         }
 
         .container {
@@ -99,9 +104,9 @@
             align-items: center;
             justify-content: center;
             box-shadow: 4px 4px 8px 0px rgba(235, 231, 231, 0.2),
-                        -4px -4px 8px 0px rgba(234, 234, 234, 0.2),
-                        inset -2px 2px 2px 0px #ffffff,
-                        inset 2px -2px 2px 0px #ececec;
+                -4px -4px 8px 0px rgba(234, 234, 234, 0.2),
+                inset -2px 2px 2px 0px #ffffff,
+                inset 2px -2px 2px 0px #ececec;
             transition: all 0.3s ease;
         }
 
@@ -199,6 +204,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>HASPortal Events</h1>
@@ -286,18 +292,6 @@
         // Wait for DOM to be ready
         let consoleOutput;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Lucide icons
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-
-            // Get console output element
-            consoleOutput = document.getElementById('console-output');
-
-            // Log initial message
-            logToConsole('received', { message: 'HASPortal Events initialized. Tap any icon to trigger an event.' });
-        });
 
         function logToConsole(type, data) {
             if (!consoleOutput) return; // Guard against early calls
@@ -343,11 +337,22 @@
                     alert('Failed to select photos');
                 }
             }
+            // Handle viewport info response
+            else if (event.detail.event === 'viewport-info-response') {
+                handleViewportInfo(event.detail);
+            }
         });
 
         // Event trigger functions
         function closePortal() {
-            const detail = { name: 'close' };
+            const detail = {
+                name: 'close', 
+                payload: {
+                    reason: 'user_action',
+                    timestamp: Date.now(),
+                    pageUrl: window.location.href,
+                }
+            };
             document.dispatchEvent(new CustomEvent('cap-events', { detail }));
             logToConsole('sent', detail);
         }
@@ -440,6 +445,68 @@
             document.dispatchEvent(new CustomEvent('cap-events', { detail }));
             logToConsole('sent', detail);
         }
+
+        // Request viewport info for safe area handling
+        function requestViewportInfo() {
+            const detail = { name: 'get-viewport-info' };
+            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+            logToConsole('sent', detail);
+        }
+
+        // Handle viewport info response
+        function handleViewportInfo(response) {
+            if (response.event === 'viewport-info-response') {
+                const safeAreaInsets = response.safeAreaInsets;
+                logToConsole('received', `Safe area insets: ${JSON.stringify(safeAreaInsets)}`);
+
+                // Apply safe area top inset to body
+                const body = document.body;
+                if (body && safeAreaInsets) {
+                    const topInset = safeAreaInsets.top || 0;
+                    body.style.paddingTop = `${20 + topInset}px`; // 20px base + safe area
+                    console.log(`✅ Applied top safe area: ${topInset}px`);
+                }
+            }
+        }
+
+        // Initialize viewport info on DOM ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            // Get console output element
+            consoleOutput = document.getElementById('console-output');
+
+            // Log initial message
+            logToConsole('received', { message: 'HASPortal Events initialized. Tap any icon to trigger an event.' });
+
+            // Request viewport info
+            requestViewportInfo();
+        });
+
+        // Handle app resume - refresh viewport
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('📱 App resumed - updating viewport');
+                requestViewportInfo();
+            }
+        });
+
+        // Handle orientation changes - update viewport info
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                console.log('📱 Orientation changed - updating viewport');
+                requestViewportInfo();
+            }, 100);
+        });
+
+        // Handle window resize - update viewport info
+        window.addEventListener('resize', () => {
+            console.log('📱 Window resized - updating viewport');
+            requestViewportInfo();
+        });
     </script>
 </body>
 </html>
