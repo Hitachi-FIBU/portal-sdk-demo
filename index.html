@@ -295,6 +295,14 @@
                         </div>
                         <div class="event-name">Show Error</div>
                     </div>
+
+                    <!-- Session Test -->
+                    <div class="event-card" onclick="openSessionTest()">
+                        <div class="icon-wrapper">
+                            <i data-lucide="shield-alert" class="event-icon"></i>
+                        </div>
+                        <div class="event-name">Session Test</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -474,6 +482,10 @@
             const detail = { name: 'application-error' };
             document.dispatchEvent(new CustomEvent('cap-events', { detail }));
             logToConsole('sent', detail);
+        }
+
+        function openSessionTest() {
+            window.location.href = 'session-test.html';
         }
 
         // Request viewport info for safe area handling

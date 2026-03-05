@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Session Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #F7F7F7;
+            min-height: 100vh;
+            padding: 20px;
+            transition: padding-top 0.3s ease;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #DC037C;
+            display: flex;
+            align-items: center;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        h1 {
+            color: #292929;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #292929;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .dot-green { background: #22c55e; }
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #eab308; }
+        .dot-gray { background: #9ca3af; }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .status-item {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        .status-label {
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .status-value {
+            color: #292929;
+            font-weight: 400;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+        }
+
+        .status-value.present { color: #22c55e; }
+        .status-value.missing { color: #ef4444; }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 20px;
+            border-radius: 10px;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .btn-primary {
+            background: #DC037C;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #292929;
+            border: 1px solid #e5e7eb;
+        }
+
+        .btn-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        .btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .console-box {
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 16px;
+            color: #d4d4d4;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .console-title {
+            color: #4ec9b0;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .log-entry {
+            margin-bottom: 6px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.4;
+        }
+
+        .log-info { border-left: 3px solid #4ec9b0; }
+        .log-warn { border-left: 3px solid #eab308; }
+        .log-error { border-left: 3px solid #ef4444; }
+        .log-success { border-left: 3px solid #22c55e; }
+        .log-camera { border-left: 3px solid #DC037C; }
+
+        .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 12px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-btn" onclick="window.history.back()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m15 18-6-6 6-6" />
+                </svg>
+            </button>
+            <h1>Session Test</h1>
+        </div>
+
+        <!-- Session Status -->
+        <div class="section" id="status-section">
+            <div class="section-title">
+                <span class="dot dot-gray" id="status-dot"></span>
+                Session Status
+            </div>
+            <div class="status-grid" id="status-grid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Step 1: Save Session -->
+        <div class="section">
+            <div class="section-title">Step 1 — Save Session Data</div>
+            <p style="font-size:13px; color:#666; margin-bottom:12px;">
+                Saves test data to cookies, sessionStorage, and localStorage. Verify these persist after camera use.
+            </p>
+            <button class="btn btn-primary" onclick="saveSessionData()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1-2 2h11l4 4z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                </svg>
+                Save Session Data
+            </button>
+        </div>
+
+        <!-- Step 2: Open Camera -->
+        <div class="section">
+            <div class="section-title">Step 2 — Open Camera</div>
+            <p style="font-size:13px; color:#666; margin-bottom:12px;">
+                Open camera using different methods. After taking a photo, return here and check if session data survived.
+            </p>
+            <div class="btn-group">
+                <!-- Method 1: HTML file input (triggers onShowFileChooser in SDK) -->
+                <div>
+                    <div style="font-size:11px; color:#999; margin-bottom:6px; font-weight:600;">METHOD 1 — HTML File Input (triggers SDK onShowFileChooser)</div>
+                    <div class="btn-row">
+                        <label class="btn btn-secondary" style="position:relative;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                <circle cx="12" cy="13" r="4" />
+                            </svg>
+                            Camera Only
+                            <input type="file" accept="image/*" capture="environment" id="camera-input"
+                                style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;"
+                                onchange="handleFileInput(event, 'camera-only')">
+                        </label>
+                        <label class="btn btn-secondary" style="position:relative;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <polyline points="21 15 16 10 5 21" />
+                            </svg>
+                            File Chooser
+                            <input type="file" accept="image/*" id="chooser-input"
+                                style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;"
+                                onchange="handleFileInput(event, 'file-chooser')">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Method 2: getUserMedia (triggers WebChromeClient.onPermissionRequest in SDK) -->
+                <div>
+                    <div style="font-size:11px; color:#999; margin-bottom:6px; font-weight:600;">METHOD 2 — getUserMedia (triggers SDK onPermissionRequest)</div>
+                    <button class="btn btn-secondary" onclick="openGetUserMedia()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="23 7 16 12 23 17 23 7" />
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                        </svg>
+                        Open Camera Stream
+                    </button>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Method 3: cap-events (triggers SDK native camera flow) -->
+                <div>
+                    <div style="font-size:11px; color:#999; margin-bottom:6px; font-weight:600;">METHOD 3 — Cap Events (triggers SDK native camera)</div>
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" onclick="openCameraCapEvent()">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                <circle cx="12" cy="13" r="4" />
+                            </svg>
+                            Cap Camera
+                        </button>
+                        <button class="btn btn-secondary" onclick="openPhotoLibraryCapEvent()">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <polyline points="21 15 16 10 5 21" />
+                            </svg>
+                            Cap Photos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Verify -->
+        <div class="section">
+            <div class="section-title">Step 3 — Verify Session</div>
+            <button class="btn btn-warning" onclick="verifySession()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                Verify Session Data
+            </button>
+        </div>
+
+        <!-- Console -->
+        <div class="console-box">
+            <div class="console-title">
+                <span>Event Log</span>
+                <button class="clear-btn" onclick="clearConsole()">Clear</button>
+            </div>
+            <div id="console-output"></div>
+        </div>
+    </div>
+
+    <!-- getUserMedia Modal -->
+    <div id="camera-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:1000;">
+        <video id="camera-video" autoplay playsinline style="width:100%; height:calc(100% - 80px); object-fit:cover;"></video>
+        <div style="height:80px; display:flex; align-items:center; justify-content:center; gap:20px; background:#111;">
+            <button onclick="capturePhoto()" style="width:60px; height:60px; border-radius:50%; background:white; border:3px solid #ccc; cursor:pointer;"></button>
+            <button onclick="closeCameraModal()" style="background:none; border:none; color:white; font-size:16px; font-weight:600; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== Session Data Keys =====
+        const SessionKey = 'hasportal_session_test';
+        const SessionTimestampKey = 'hasportal_session_timestamp';
+        const SessionTokenKey = 'hasportal_session_token';
+        const LocalStorageKey = 'hasportal_local_test';
+        const CookieTestName = 'hasportal_test_cookie';
+        const CookieSessionName = 'hasportal_session_cookie';
+
+        let consoleOutput;
+        let cameraStream = null;
+
+        // ===== Logging =====
+        function log(type, message, data) {
+            if (!consoleOutput) return;
+            const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 });
+            const entry = document.createElement('div');
+            const cls = { info: 'log-info', warn: 'log-warn', error: 'log-error', success: 'log-success', camera: 'log-camera' }[type] || 'log-info';
+            entry.className = `log-entry ${cls}`;
+            let text = `[${timestamp}] ${message}`;
+            if (data !== undefined) text += '\n' + (typeof data === 'string' ? data : JSON.stringify(data, null, 2));
+            entry.textContent = text;
+            consoleOutput.appendChild(entry);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        function clearConsole() {
+            if (consoleOutput) consoleOutput.innerHTML = '';
+        }
+
+        // ===== Cookie Helpers =====
+        function setCookie(name, value, maxAge) {
+            const parts = [name + '=' + encodeURIComponent(value), 'Path=/'];
+            if (maxAge !== undefined) {
+                parts.push('Max-Age=' + maxAge);
+            }
+            // No Max-Age = session cookie (deleted when browser/webview closes)
+            document.cookie = parts.join('; ');
+        }
+
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]*)'));
+            return match ? decodeURIComponent(match[2]) : null;
+        }
+
+        function getAllCookies() {
+            return document.cookie || '(none)';
+        }
+
+        // ===== Save Session Data =====
+        function saveSessionData() {
+            const timestamp = new Date().toISOString();
+            const token = 'tok_' + Math.random().toString(36).substring(2, 15);
+
+            // 1. Persistent cookie (Max-Age = 1 hour)
+            setCookie(CookieTestName, 'persistent_' + token, 3600);
+            log('info', 'Set persistent cookie', { name: CookieTestName, maxAge: '3600s' });
+
+            // 2. Session cookie (no Max-Age — lost when session ends)
+            setCookie(CookieSessionName, 'session_' + token);
+            log('info', 'Set session cookie (no Max-Age)', { name: CookieSessionName });
+
+            // 3. sessionStorage
+            try {
+                sessionStorage.setItem(SessionKey, JSON.stringify({ token, timestamp, status: 'active' }));
+                sessionStorage.setItem(SessionTimestampKey, timestamp);
+                sessionStorage.setItem(SessionTokenKey, token);
+                log('info', 'Set sessionStorage', { key: SessionKey });
+            } catch (e) {
+                log('error', 'sessionStorage FAILED', e.message);
+            }
+
+            // 4. localStorage
+            try {
+                localStorage.setItem(LocalStorageKey, JSON.stringify({ token, timestamp, status: 'active' }));
+                log('info', 'Set localStorage', { key: LocalStorageKey });
+            } catch (e) {
+                log('error', 'localStorage FAILED', e.message);
+            }
+
+            log('success', 'All session data saved', { token, timestamp });
+            updateStatusDisplay();
+        }
+
+        // ===== Verify Session Data =====
+        function verifySession() {
+            log('info', '--- VERIFYING SESSION DATA ---');
+            let allPassed = true;
+
+            // 1. Check persistent cookie
+            const persistentCookie = getCookie(CookieTestName);
+            if (persistentCookie) {
+                log('success', 'Persistent cookie: PRESENT', persistentCookie);
+            } else {
+                log('error', 'Persistent cookie: MISSING');
+                allPassed = false;
+            }
+
+            // 2. Check session cookie
+            const sessionCookie = getCookie(CookieSessionName);
+            if (sessionCookie) {
+                log('success', 'Session cookie: PRESENT', sessionCookie);
+            } else {
+                log('error', 'Session cookie: MISSING');
+                allPassed = false;
+            }
+
+            // 3. Check sessionStorage
+            try {
+                const sessionData = sessionStorage.getItem(SessionKey);
+                if (sessionData) {
+                    log('success', 'sessionStorage: PRESENT', sessionData);
+                } else {
+                    log('error', 'sessionStorage: MISSING');
+                    allPassed = false;
+                }
+            } catch (e) {
+                log('error', 'sessionStorage: ERROR', e.message);
+                allPassed = false;
+            }
+
+            // 4. Check localStorage
+            try {
+                const localData = localStorage.getItem(LocalStorageKey);
+                if (localData) {
+                    log('success', 'localStorage: PRESENT', localData);
+                } else {
+                    log('error', 'localStorage: MISSING');
+                    allPassed = false;
+                }
+            } catch (e) {
+                log('error', 'localStorage: ERROR', e.message);
+                allPassed = false;
+            }
+
+            // 5. Log ALL raw cookies
+            log('info', 'Raw document.cookie', getAllCookies());
+
+            // Summary
+            if (allPassed) {
+                log('success', 'ALL SESSION DATA INTACT');
+            } else {
+                log('error', 'SESSION DATA LOST — see above for details');
+            }
+
+            updateStatusDisplay();
+        }
+
+        // ===== Status Display =====
+        function updateStatusDisplay() {
+            const grid = document.getElementById('status-grid');
+            const dot = document.getElementById('status-dot');
+
+            const persistentCookie = getCookie(CookieTestName);
+            const sessionCookie = getCookie(CookieSessionName);
+            let sessionData = null;
+            let localData = null;
+            try { sessionData = sessionStorage.getItem(SessionKey); } catch (e) {}
+            try { localData = localStorage.getItem(LocalStorageKey); } catch (e) {}
+
+            const items = [
+                { label: 'Persistent Cookie', value: persistentCookie, key: CookieTestName },
+                { label: 'Session Cookie', value: sessionCookie, key: CookieSessionName },
+                { label: 'sessionStorage', value: sessionData, key: SessionKey },
+                { label: 'localStorage', value: localData, key: LocalStorageKey },
+            ];
+
+            const allPresent = items.every(i => i.value);
+            const anyPresent = items.some(i => i.value);
+
+            dot.className = 'dot ' + (allPresent ? 'dot-green' : anyPresent ? 'dot-yellow' : 'dot-gray');
+
+            grid.innerHTML = items.map(item => `
+                <div class="status-item">
+                    <div class="status-label">${item.label}</div>
+                    <div class="status-value ${item.value ? 'present' : 'missing'}">
+                        ${item.value ? 'Present' : 'Not set'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ===== Camera Methods =====
+
+        // Method 1: HTML file input — handled via onchange, no extra JS needed
+        function handleFileInput(event, source) {
+            log('camera', 'File input returned (' + source + ')');
+            const file = event.target.files[0];
+            if (file) {
+                log('camera', 'File selected', { name: file.name, size: file.size, type: file.type });
+            } else {
+                log('warn', 'No file selected (user cancelled)');
+            }
+            // Immediately verify session after camera returns
+            setTimeout(() => {
+                log('info', '--- AUTO-VERIFY after camera return ---');
+                verifySession();
+            }, 500);
+            // Reset input so the same file can be re-selected
+            event.target.value = '';
+        }
+
+        // Method 2: getUserMedia
+        function openGetUserMedia() {
+            log('camera', 'Opening camera via getUserMedia...');
+            const modal = document.getElementById('camera-modal');
+            const video = document.getElementById('camera-video');
+
+            navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' },
+                audio: false
+            }).then(stream => {
+                cameraStream = stream;
+                video.srcObject = stream;
+                modal.style.display = 'block';
+                log('camera', 'getUserMedia stream active');
+            }).catch(err => {
+                log('error', 'getUserMedia failed', err.message);
+                // Try cap-event fallback
+                const detail = { name: 'camera-blocked', reason: err.name };
+                document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+                log('warn', 'Sent cap-events camera-blocked', detail);
+            });
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('camera-video');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            log('camera', 'Photo captured via getUserMedia', {
+                width: canvas.width,
+                height: canvas.height
+            });
+            closeCameraModal();
+        }
+
+        function closeCameraModal() {
+            const modal = document.getElementById('camera-modal');
+            modal.style.display = 'none';
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(t => t.stop());
+                cameraStream = null;
+                log('camera', 'Camera stream stopped');
+            }
+            // Auto-verify after closing
+            setTimeout(() => {
+                log('info', '--- AUTO-VERIFY after getUserMedia closed ---');
+                verifySession();
+            }, 500);
+        }
+
+        // Method 3: Cap Events
+        function openCameraCapEvent() {
+            log('camera', 'Opening camera via cap-events...');
+            const detail = { name: 'camera', source: 'session-test' };
+            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+            log('info', 'Dispatched cap-events', detail);
+        }
+
+        function openPhotoLibraryCapEvent() {
+            log('camera', 'Opening photo library via cap-events...');
+            const detail = { name: 'photo-library', selectionLimit: 1, filter: 'images' };
+            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+            log('info', 'Dispatched cap-events', detail);
+        }
+
+        // ===== Cap Events Response Listener =====
+        document.addEventListener('cap-events-response', (event) => {
+            log('info', 'Received cap-events-response', event.detail);
+
+            // Handle viewport info
+            if (event.detail.event === 'viewport-info-response') {
+                const safeAreaInsets = event.detail.safeAreaInsets;
+                if (safeAreaInsets) {
+                    const topInset = safeAreaInsets.top || 0;
+                    document.body.style.paddingTop = (20 + topInset) + 'px';
+                }
+                return;
+            }
+
+            // After any camera/photo response, auto-verify
+            setTimeout(() => {
+                log('info', '--- AUTO-VERIFY after cap-events response ---');
+                verifySession();
+            }, 500);
+        });
+
+        // ===== Visibility Change — detect app resume =====
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                log('info', 'Page became visible (app resumed from camera?)');
+                setTimeout(() => {
+                    verifySession();
+                }, 300);
+            } else {
+                log('warn', 'Page hidden (camera/picker opening?)');
+            }
+        });
+
+        // ===== Init =====
+        document.addEventListener('DOMContentLoaded', () => {
+            consoleOutput = document.getElementById('console-output');
+            log('info', 'Session Test page loaded');
+            log('info', 'Raw cookies on load', getAllCookies());
+            updateStatusDisplay();
+
+            // Request viewport info
+            const detail = { name: 'get-viewport-info' };
+            document.dispatchEvent(new CustomEvent('cap-events', { detail }));
+        });
+    </script>
+</body>
+
+</html>
