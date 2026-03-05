@@ -262,6 +262,28 @@
                 </div>
             </div>
 
+            <!-- Features Section -->
+            <div class="event-section">
+                <div class="section-header">Features</div>
+                <div class="section-grid">
+                    <!-- Contact -->
+                    <div class="event-card" onclick="openContact()">
+                        <div class="icon-wrapper">
+                            <i data-lucide="contact" class="event-icon"></i>
+                        </div>
+                        <div class="event-name">Contact</div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="event-card" onclick="openLocation()">
+                        <div class="icon-wrapper">
+                            <i data-lucide="map-pin" class="event-icon"></i>
+                        </div>
+                        <div class="event-name">Location</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- System Section -->
             <div class="event-section">
                 <div class="section-header">System</div>
@@ -427,6 +449,14 @@
         function openPhotoLibrary() {
             // Navigate to photo library page
             window.location.href = 'photo-library.html';
+        }
+
+        function openContact() {
+            window.location.href = 'contact.html';
+        }
+
+        function openLocation() {
+            window.location.href = 'location.html';
         }
 
         function openPDF() {
