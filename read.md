@@ -237,6 +237,77 @@ document.dispatchEvent(new CustomEvent('cap-events', {
 
 ---
 
+### 7. Get Viewport Info (Safe Area)
+
+Request current safe area insets and viewport information on-demand. Useful for responsive layouts that need to account for the notch, Dynamic Island, or home indicator.
+
+**Send:**
+```javascript
+document.dispatchEvent(new CustomEvent('cap-events', {
+    detail: { name: 'get-viewport-info' }
+}))
+```
+
+**Receive:**
+```javascript
+{
+    event: 'viewport-info-response',
+    safeAreaInsets: {
+        top: 59,        // Notch / Dynamic Island area
+        bottom: 34,     // Home indicator area
+        left: 0,
+        right: 0
+    },
+    viewportInfo: {
+        availableHeight: 719,       // Total height minus safe areas
+        contentHeight: 666.5,       // Available height minus custom header
+        customHeaderHeight: 52.5,   // Height of custom header (if present)
+        safeAreaInsets: {            // Same as top-level safeAreaInsets
+            top: 47,
+            bottom: 34,
+            left: 0,
+            right: 0
+        },
+        hasCustomHeader: true       // Whether a custom header is displayed
+    }
+}
+```
+
+**Platform Support:** iOS only
+
+**Example:**
+```javascript
+function getViewportInfo() {
+    return new Promise((resolve) => {
+        const handler = (event) => {
+            if (event.detail.event === 'viewport-info-response') {
+                document.removeEventListener('cap-events-response', handler)
+                resolve(event.detail)
+            }
+        }
+
+        document.addEventListener('cap-events-response', handler)
+
+        document.dispatchEvent(new CustomEvent('cap-events', {
+            detail: { name: 'get-viewport-info' }
+        }))
+    })
+}
+
+// Usage
+getViewportInfo().then(({ safeAreaInsets, viewportInfo }) => {
+    console.log('Safe area:', safeAreaInsets)
+    document.body.style.paddingTop = `${safeAreaInsets.top}px`
+    document.body.style.paddingBottom = `${safeAreaInsets.bottom}px`
+})
+```
+
+**Notes:**
+- Returns current values even after orientation changes or dynamic content updates
+- Safe area insets reflect device-specific areas (notch, Dynamic Island, home indicator)
+
+---
+
 ## Usage Examples
 
 ### Photo Upload with Progress
@@ -654,6 +725,7 @@ document.addEventListener('cap-events-response', (e) => {
 | Photos | `{ name: 'photo-library', selectionLimit, filter }` | `{ success, cancelled, photos }` |
 | PDF | `{ name: 'intent', type: 'application/pdf', url, title }` | None |
 | Error | `{ name: 'application-error' }` | None |
+| Viewport Info | `{ name: 'get-viewport-info' }` | `{ event: 'viewport-info-response', safeAreaInsets, viewportInfo }` |
 
 ---
 
@@ -670,6 +742,15 @@ document.addEventListener('cap-events-response', (e) => {
     success: boolean,
     cancelled: boolean,
     photos: [{ dataUrl/data, format/type }]
+}
+```
+
+**Viewport Info (iOS only):**
+```javascript
+{
+    event: 'viewport-info-response',
+    safeAreaInsets: { top, bottom, left, right },
+    viewportInfo: { availableHeight, contentHeight, customHeaderHeight, safeAreaInsets, hasCustomHeader }
 }
 ```
 
@@ -694,6 +775,10 @@ class PortalBridge {
             // Photos
             else if (e.detail.photos !== undefined) {
                 this.trigger('photos', e.detail)
+            }
+            // Viewport info
+            else if (e.detail.event === 'viewport-info-response') {
+                this.trigger('viewport', e.detail)
             }
         })
     }
@@ -744,6 +829,15 @@ class PortalBridge {
 
     showError() {
         this.send({ name: 'application-error' })
+    }
+
+    getViewportInfo() {
+        return new Promise((resolve) => {
+            this.on('viewport', (data) => {
+                resolve(data)
+            })
+            this.send({ name: 'get-viewport-info' })
+        })
     }
 }
 
