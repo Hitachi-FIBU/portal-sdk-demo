@@ -78,16 +78,51 @@ document.addEventListener('cap-events-response', (e) => {
 
 ### 1. Close Portal
 
-Close the current WebView.
+Close the current WebView. May optionally include an `activityPerformed` array that names server-confirmed activities the user completed — useful for letting parent pages (in stacked-portal scenarios) refresh selectively instead of blindly.
 
-**Send:**
+**Send (no activity — browsed and closed):**
 ```javascript
 document.dispatchEvent(new CustomEvent('cap-events', {
     detail: { name: 'close' }
 }))
 ```
 
-**Receive:** None (portal closes)
+**Send (with activity — user completed one or more server-confirmed actions):**
+```javascript
+document.dispatchEvent(new CustomEvent('cap-events', {
+    detail: {
+        name: 'close',
+        activityPerformed: ['points-redeemed']   // single activity
+    }
+}))
+
+// Or multiple (e.g. redemption that crossed a tier threshold)
+document.dispatchEvent(new CustomEvent('cap-events', {
+    detail: {
+        name: 'close',
+        activityPerformed: ['points-redeemed', 'tier-upgraded']
+    }
+}))
+```
+
+**Helper:**
+```javascript
+const closePortal = (activityPerformed = []) => {
+    document.dispatchEvent(new CustomEvent('cap-events', {
+        detail: { name: 'close', activityPerformed }
+    }))
+}
+```
+
+**Receive on this WebView:** None (portal closes)
+
+**Receive on parent WebView (stacked portals only):** `cap-events-response { name: 'child-portal-closed', url, detail? }` — see [Event 8: Child Portal Closed](#8-child-portal-closed-parent-webview).
+
+**Payload contract:**
+- Only list server-confirmed activities — `'points-redeemed'` means the redemption API returned 2xx, not "user tapped Redeem".
+- No duplicates in the array.
+- Keep the enum closed; define valid strings centrally with the team.
+- Never put PII, tokens, or PAN in `detail`.
 
 ---
 
@@ -305,6 +340,61 @@ getViewportInfo().then(({ safeAreaInsets, viewportInfo }) => {
 **Notes:**
 - Returns current values even after orientation changes or dynamic content updates
 - Safe area insets reflect device-specific areas (notch, Dynamic Island, home indicator)
+
+---
+
+### 8. Child Portal Closed (parent WebView)
+
+When a stacked child portal dismisses, the SDK dispatches a `cap-events-response` event into the **parent** portal's WebView. Lets the parent page react to activity completed in the child — e.g. refresh loyalty points after a voucher redemption.
+
+**Send:** None — fired automatically by the SDK when a child portal dismisses (any close path: web `close`, hardware back, close modal, nav close button).
+
+**Receive (on parent WebView):**
+```javascript
+{
+    name: 'child-portal-closed',
+    url: 'https://example.com/child',       // child's final URL
+    detail: {                                // echoes the child's original close detail
+        name: 'close',
+        activityPerformed: ['points-redeemed']
+        // ...any other keys the child attached to detail
+    }
+}
+```
+
+**`detail` presence:**
+- Present for **web-initiated** closes (child dispatched `cap-events { name: 'close', ... }`).
+- **Absent** for native-initiated closes (hardware back, close modal, nav close button) — only `name` and `url` are included.
+
+**Example — selective refresh by activity:**
+```javascript
+const ACTIVITY_TO_SCOPES = {
+    'points-redeemed': ['points'],
+    'points-earned':   ['points'],
+    'tier-upgraded':   ['points', 'tier']
+}
+
+const FETCHERS = {
+    points: fetchLoyaltyInfo,
+    tier:   fetchTierInfo
+}
+
+document.addEventListener('cap-events-response', (e) => {
+    if (e?.detail?.name !== 'child-portal-closed') return
+
+    const performed = e.detail.detail?.activityPerformed ?? []
+    if (performed.length === 0) return   // browsed-and-closed, nothing to refresh
+
+    // Flatten activities → scopes, dedupe, fetch once each
+    const scopes = new Set()
+    performed.forEach(a => ACTIVITY_TO_SCOPES[a]?.forEach(s => scopes.add(s)))
+    Promise.all([...scopes].map(s => FETCHERS[s]?.())).catch(console.error)
+})
+```
+
+**Platform Support:**
+- **Android:** fully supported from SDK v0.7.
+- **iOS:** not yet implemented — planned for an upcoming release. Until then, iOS parent WebViews will not receive this event. Web teams can still code against the same handler; it will simply not fire on iOS until parity ships. As an interim, host apps can forward the info from the child's native `eventsCallbacks` listener into the parent WebView manually.
 
 ---
 
@@ -719,13 +809,14 @@ document.addEventListener('cap-events-response', (e) => {
 
 | Event | Send To Native | Receive From Native |
 |-------|---------------|---------------------|
-| Close | `{ name: 'close' }` | None |
+| Close | `{ name: 'close', activityPerformed?: string[] }` | None (on this WebView) / `child-portal-closed` on parent WebView for stacked portals |
 | Open Portal | `{ name: 'open', url, ... }` | None |
 | Camera | `{ name: 'camera-blocked' }` | `{ name: 'camera-permission-result', granted }` |
 | Photos | `{ name: 'photo-library', selectionLimit, filter }` | `{ success, cancelled, photos }` |
 | PDF | `{ name: 'intent', type: 'application/pdf', url, title }` | None |
 | Error | `{ name: 'application-error' }` | None |
 | Viewport Info | `{ name: 'get-viewport-info' }` | `{ event: 'viewport-info-response', safeAreaInsets, viewportInfo }` |
+| Child Portal Closed | *(fired by SDK)* | `{ name: 'child-portal-closed', url, detail? }` — parent WebView only, Android SDK v0.7+ (iOS parity pending) |
 
 ---
 
@@ -751,6 +842,16 @@ document.addEventListener('cap-events-response', (e) => {
     event: 'viewport-info-response',
     safeAreaInsets: { top, bottom, left, right },
     viewportInfo: { availableHeight, contentHeight, customHeaderHeight, safeAreaInsets, hasCustomHeader }
+}
+```
+
+**Child Portal Closed (parent WebView, Android SDK v0.7+):**
+```javascript
+{
+    name: 'child-portal-closed',
+    url: '<child final URL>',
+    detail: { name: 'close', activityPerformed: ['points-redeemed'] /* echoed from child */ }
+    // `detail` is absent for native-initiated closes (hardware back, close modal, nav close)
 }
 ```
 
@@ -780,6 +881,10 @@ class PortalBridge {
             else if (e.detail.event === 'viewport-info-response') {
                 this.trigger('viewport', e.detail)
             }
+            // Child portal closed (parent WebView only, Android SDK v0.7+)
+            else if (e.detail.name === 'child-portal-closed') {
+                this.trigger('childClosed', e.detail)
+            }
         })
     }
 
@@ -807,8 +912,8 @@ class PortalBridge {
     }
 
     // Convenience methods
-    close() {
-        this.send({ name: 'close' })
+    close(activityPerformed = []) {
+        this.send({ name: 'close', activityPerformed })
     }
 
     openPortal(url, options = {}) {
@@ -854,10 +959,19 @@ portal.on('photos', (result) => {
     }
 })
 
+// Parent-only: react when a stacked child portal closes
+portal.on('childClosed', ({ url, detail }) => {
+    const performed = detail?.activityPerformed ?? []
+    if (performed.length === 0) return
+    console.log(`Child at ${url} completed:`, performed)
+    // e.g. refresh loyalty points, tier info, etc.
+})
+
 // Trigger events
 portal.requestCamera()
 portal.openPhotoPicker(5)
 portal.openPDF('https://example.com/doc.pdf', 'Document')
+portal.close(['points-redeemed'])   // close with activity signal
 ```
 
 ---
