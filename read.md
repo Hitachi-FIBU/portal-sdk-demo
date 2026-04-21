@@ -394,7 +394,7 @@ document.addEventListener('cap-events-response', (e) => {
 
 **Platform Support:**
 - **Android:** fully supported from SDK v0.7.
-- **iOS:** not yet implemented — planned for an upcoming release. Until then, iOS parent WebViews will not receive this event. Web teams can still code against the same handler; it will simply not fire on iOS until parity ships. As an interim, host apps can forward the info from the child's native `eventsCallbacks` listener into the parent WebView manually.
+- **iOS:** fully supported from SDK v0.6.
 
 ---
 
@@ -816,7 +816,7 @@ document.addEventListener('cap-events-response', (e) => {
 | PDF | `{ name: 'intent', type: 'application/pdf', url, title }` | None |
 | Error | `{ name: 'application-error' }` | None |
 | Viewport Info | `{ name: 'get-viewport-info' }` | `{ event: 'viewport-info-response', safeAreaInsets, viewportInfo }` |
-| Child Portal Closed | *(fired by SDK)* | `{ name: 'child-portal-closed', url, detail? }` — parent WebView only, Android SDK v0.7+ (iOS parity pending) |
+| Child Portal Closed | *(fired by SDK)* | `{ name: 'child-portal-closed', url, detail? }` — parent WebView only (Android SDK v0.7+, iOS SDK v0.6+) |
 
 ---
 
@@ -845,7 +845,7 @@ document.addEventListener('cap-events-response', (e) => {
 }
 ```
 
-**Child Portal Closed (parent WebView, Android SDK v0.7+):**
+**Child Portal Closed (parent WebView, Android SDK v0.7+ / iOS SDK v0.6+):**
 ```javascript
 {
     name: 'child-portal-closed',
@@ -881,7 +881,7 @@ class PortalBridge {
             else if (e.detail.event === 'viewport-info-response') {
                 this.trigger('viewport', e.detail)
             }
-            // Child portal closed (parent WebView only, Android SDK v0.7+)
+            // Child portal closed (parent WebView only, Android SDK v0.7+ / iOS SDK v0.6+)
             else if (e.detail.name === 'child-portal-closed') {
                 this.trigger('childClosed', e.detail)
             }
