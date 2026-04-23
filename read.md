@@ -398,6 +398,128 @@ document.addEventListener('cap-events-response', (e) => {
 
 ---
 
+### 9. Screen Brightness
+
+Temporarily boost or dim the device screen while a portal is open — useful for QR codes, barcodes, or reader-friendly screens. The SDK captures the user's original brightness on the first `set`, animates transitions by default, and restores automatically when the portal dismisses.
+
+**Send — set (with default 300 ms ramp):**
+```javascript
+document.dispatchEvent(new CustomEvent('cap-events', {
+    detail: {
+        name: 'screen-brightness',
+        action: 'set',
+        value: 1.0        // 0.0 (min) – 1.0 (max); out-of-range values are clamped
+    }
+}))
+```
+
+**Send — set (explicit duration in milliseconds):**
+```javascript
+document.dispatchEvent(new CustomEvent('cap-events', {
+    detail: {
+        name: 'screen-brightness',
+        action: 'set',
+        value: 1.0,
+        duration: 600     // ms; omit for 300 ms default, pass 0 to snap instantly
+    }
+}))
+```
+
+**Send — reset (restore the user's original brightness, default 300 ms ramp):**
+```javascript
+document.dispatchEvent(new CustomEvent('cap-events', {
+    detail: { name: 'screen-brightness', action: 'reset' }
+}))
+
+// Or with an explicit duration:
+document.dispatchEvent(new CustomEvent('cap-events', {
+    detail: { name: 'screen-brightness', action: 'reset', duration: 0 }  // snap
+}))
+```
+
+**Receive (success):**
+```javascript
+{
+    event: 'screen-brightness',
+    success: true,
+    data: {
+        brightness: 1.0,      // value actually applied (clamped if out of range)
+        action: 'set',        // echoes the requested action
+        duration: 300         // ms actually applied
+    }
+}
+```
+
+On `reset`, `data.brightness` reports the target being restored to (iOS: the user's original; Android: `-1` as the `BRIGHTNESS_OVERRIDE_NONE` sentinel, meaning "defer to the system default").
+
+**Receive (error):**
+```javascript
+{
+    event: 'screen-brightness',
+    success: false,
+    data: { error: 'invalid-value' }
+}
+```
+
+Emitted when `value` is missing / non-numeric on a `set`, or when `action` is unknown. Brightness is **not** changed on an error response.
+
+**Parameters:**
+- `action` (required): `"set"` or `"reset"`.
+- `value` (required for `set`): float `0.0`–`1.0`. Out-of-range numbers are clamped to the bound; the response reports the clamped value.
+- `duration` (optional): ramp duration in milliseconds. Default `300`. Pass `0` to snap instantly.
+
+**Behavior notes:**
+- **Auto-restore** — the SDK captures the user's original brightness on the first `set` and restores it automatically when the portal dismisses. You don't need to always call `reset` before closing.
+- **Capture-once semantics** — calling `set 0.5` then `set 1.0` then `reset` correctly restores to the user's real original (not to `0.5`).
+- **Stacked portals** — each portal tracks its own brightness state. A parent's boost is preserved across child-portal transitions; a child's boost is restored when the child closes.
+- **Cancellation** — any subsequent `set`, `reset`, or portal dismiss cancels an in-flight ramp; the newest request always wins.
+
+**Platform Support:**
+- **iOS 13+** — uses `UIScreen.main.brightness` (system-wide). Known iOS limitation: if the user force-kills the app while brightness is boosted, iOS does not auto-restore. Same behaviour as any flashlight app.
+- **Android 7+ (API 24+)** — uses window-local `WindowManager.LayoutParams.screenBrightness`. Requires **no** `WRITE_SETTINGS` permission; the boost is scoped to the portal's own window and reverts the moment the portal dismisses.
+
+**Example — boost for a QR code screen:**
+```javascript
+// Crank brightness to max while the QR is visible
+document.dispatchEvent(new CustomEvent('cap-events', {
+    detail: { name: 'screen-brightness', action: 'set', value: 1.0 }
+}))
+
+// When the user dismisses the QR panel, ramp back to the user's original
+function hideQR() {
+    document.dispatchEvent(new CustomEvent('cap-events', {
+        detail: { name: 'screen-brightness', action: 'reset' }
+    }))
+}
+
+// If you close the portal entirely, you don't need to call reset —
+// the SDK restores the user's original brightness automatically.
+```
+
+**Example — awaiting the applied value:**
+```javascript
+function setBrightness(value, duration) {
+    return new Promise((resolve) => {
+        const handler = (e) => {
+            if (e.detail.event !== 'screen-brightness') return
+            document.removeEventListener('cap-events-response', handler)
+            resolve(e.detail)
+        }
+        document.addEventListener('cap-events-response', handler)
+
+        document.dispatchEvent(new CustomEvent('cap-events', {
+            detail: { name: 'screen-brightness', action: 'set', value, duration }
+        }))
+    })
+}
+
+setBrightness(1.0, 400).then(({ success, data }) => {
+    if (success) console.log('Brightness targeting:', data.brightness)
+})
+```
+
+---
+
 ## Usage Examples
 
 ### Photo Upload with Progress
@@ -817,6 +939,7 @@ document.addEventListener('cap-events-response', (e) => {
 | Error | `{ name: 'application-error' }` | None |
 | Viewport Info | `{ name: 'get-viewport-info' }` | `{ event: 'viewport-info-response', safeAreaInsets, viewportInfo }` |
 | Child Portal Closed | *(fired by SDK)* | `{ name: 'child-portal-closed', url, detail? }` — parent WebView only (Android SDK v0.7+, iOS SDK v0.6+) |
+| Screen Brightness | `{ name: 'screen-brightness', action: 'set' \| 'reset', value?: 0.0–1.0, duration?: ms }` | `{ event: 'screen-brightness', success, data: { brightness, action, duration } }` |
 
 ---
 
@@ -855,6 +978,20 @@ document.addEventListener('cap-events-response', (e) => {
 }
 ```
 
+**Screen Brightness:**
+```javascript
+{
+    event: 'screen-brightness',
+    success: boolean,
+    data: {
+        brightness: number,    // [0.0, 1.0] for set; on Android reset = -1 (BRIGHTNESS_OVERRIDE_NONE sentinel); on iOS reset = the user's original value
+        action: 'set' | 'reset',
+        duration: number       // ms actually applied (0 for a snap)
+    }
+}
+// Error: { event: 'screen-brightness', success: false, data: { error: 'invalid-value' } }
+```
+
 ---
 
 ### Helper Utility
@@ -884,6 +1021,10 @@ class PortalBridge {
             // Child portal closed (parent WebView only, Android SDK v0.7+ / iOS SDK v0.6+)
             else if (e.detail.name === 'child-portal-closed') {
                 this.trigger('childClosed', e.detail)
+            }
+            // Screen brightness
+            else if (e.detail.event === 'screen-brightness') {
+                this.trigger('brightness', e.detail)
             }
         })
     }
@@ -936,6 +1077,18 @@ class PortalBridge {
         this.send({ name: 'application-error' })
     }
 
+    setBrightness(value, duration) {
+        const detail = { name: 'screen-brightness', action: 'set', value }
+        if (duration !== undefined) detail.duration = duration
+        this.send(detail)
+    }
+
+    resetBrightness(duration) {
+        const detail = { name: 'screen-brightness', action: 'reset' }
+        if (duration !== undefined) detail.duration = duration
+        this.send(detail)
+    }
+
     getViewportInfo() {
         return new Promise((resolve) => {
             this.on('viewport', (data) => {
@@ -967,11 +1120,19 @@ portal.on('childClosed', ({ url, detail }) => {
     // e.g. refresh loyalty points, tier info, etc.
 })
 
+portal.on('brightness', ({ success, data }) => {
+    if (success) console.log('Brightness now:', data.brightness, `(${data.duration}ms)`)
+    else console.warn('Brightness error:', data.error)
+})
+
 // Trigger events
 portal.requestCamera()
 portal.openPhotoPicker(5)
 portal.openPDF('https://example.com/doc.pdf', 'Document')
 portal.close(['points-redeemed'])   // close with activity signal
+portal.setBrightness(1.0)            // crank to max with default 300 ms ramp
+portal.setBrightness(0.5, 0)          // snap to half, no animation
+portal.resetBrightness()              // restore user's original brightness
 ```
 
 ---
